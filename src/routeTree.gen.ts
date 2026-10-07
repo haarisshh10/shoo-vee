@@ -20,6 +20,7 @@ import { Route as PublicDiscoverRouteImport } from './routes/_public/discover'
 import { Route as PublicGigsRouteImport } from './routes/_public/gigs'
 import { Route as PublicShotsRouteImport } from './routes/_public/shots'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as ApiSeedRouteImport } from './routes/api/seed'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as PublicCreatorsCreatorIdRouteImport } from './routes/_public/creators/$creatorId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -83,6 +84,11 @@ const PublicShotsRoute = PublicShotsRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSeedRoute = ApiSeedRouteImport.update({
+  id: '/api/seed',
+  path: '/api/seed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthAppIndexRoute = AuthAppIndexRouteImport.update({
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/discover': typeof PublicDiscoverRoute
   '/gigs': typeof PublicGigsRoute
   '/shots': typeof PublicShotsRoute
+  '/api/seed': typeof ApiSeedRoute
   '/admin/': typeof AdminIndexRoute
   '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/discover': typeof PublicDiscoverRoute
   '/gigs': typeof PublicGigsRoute
   '/shots': typeof PublicShotsRoute
+  '/api/seed': typeof ApiSeedRoute
   '/admin': typeof AdminIndexRoute
   '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/_public/discover': typeof PublicDiscoverRoute
   '/_public/gigs': typeof PublicGigsRoute
   '/_public/shots': typeof PublicShotsRoute
+  '/api/seed': typeof ApiSeedRoute
   '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_public/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/gigs'
     | '/shots'
+    | '/api/seed'
     | '/admin/'
     | '/creators/$creatorId'
     | '/api/auth/$'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/gigs'
     | '/shots'
+    | '/api/seed'
     | '/admin'
     | '/creators/$creatorId'
     | '/api/auth/$'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/_public/discover'
     | '/_public/gigs'
     | '/_public/shots'
+    | '/api/seed'
     | '/_public/'
     | '/admin/'
     | '/_public/creators/$creatorId'
@@ -290,6 +302,7 @@ export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   GuestRouteRoute: typeof GuestRouteRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
+  ApiSeedRoute: typeof ApiSeedRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/seed': {
+      id: '/api/seed'
+      path: '/api/seed'
+      fullPath: '/api/seed'
+      preLoaderRoute: typeof ApiSeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/app/': {
@@ -539,6 +559,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
   GuestRouteRoute: GuestRouteRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
+  ApiSeedRoute: ApiSeedRoute,
   AdminIndexRoute: AdminIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

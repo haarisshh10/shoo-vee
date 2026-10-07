@@ -5,6 +5,7 @@ import { z } from "zod";
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import { db } from "#/lib/db/index.ts";
 import { creatorProfile, gig, post, user } from "#/lib/db/schema/index.ts";
+import { notify } from "#/lib/notifications/functions.ts";
 
 async function requireAdmin(userId: string) {
   const [row] = await db.select().from(user).where(eq(user.id, userId)).limit(1);
@@ -43,6 +44,13 @@ export const $adminSetCreatorVerification = createServerFn({ method: "POST" })
       .set({ verificationStatus: data.status })
       .where(eq(creatorProfile.id, data.creatorId))
       .returning();
+    if (updated) {
+      await notify(updated.userId, {
+        type: "verification",
+        title: `Verification ${data.status}`,
+        body: `Your creator profile is now ${data.status}.`,
+      });
+    }
     return updated;
   });
 

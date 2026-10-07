@@ -5,6 +5,7 @@ import { z } from "zod";
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import { db } from "#/lib/db/index.ts";
 import { booking, creatorProfile, service, user } from "#/lib/db/schema/index.ts";
+import { notify } from "#/lib/notifications/functions.ts";
 
 const createBookingSchema = z.object({
   creatorId: z.string().min(1),
@@ -64,6 +65,11 @@ export const $createBooking = createServerFn({ method: "POST" })
         status: "pending",
       })
       .returning();
+    await notify(creator.userId, {
+      type: "booking",
+      title: "New booking request",
+      body: data.message ?? "A customer requested a booking.",
+    });
     return created;
   });
 
@@ -138,6 +144,26 @@ export const $transitionBooking = createServerFn({ method: "POST" })
         .set({ status: next })
         .where(eq(booking.id, existing.id))
         .returning();
+      if (data.action === "cancel") {
+        const [creatorProfileRow] = await db
+          .select()
+          .from(creatorProfile)
+          .where(eq(creatorProfile.id, existing.creatorId))
+          .limit(1);
+        if (creatorProfileRow) {
+          await notify(creatorProfileRow.userId, {
+            type: "booking",
+            title: "Booking cancelled",
+            body: "A customer cancelled their booking request.",
+          });
+        }
+      } else {
+        await notify(existing.customerId, {
+          type: "booking",
+          title: `Booking ${next}`,
+          body: `Your booking request was ${next}.`,
+        });
+      }
       return updated;
     }
 

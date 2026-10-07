@@ -112,7 +112,7 @@ function LoginForm() {
  * Demo credentials for the live deployment of the Cove Stack template on which this project is based.
  */
 function DeleteMeDemoAccount() {
-  if (new URL(ENV.VITE_BASE_URL).origin !== "https://cove.mugnavo.com") return null;
+  if (!ENV.VITE_BASE_URL.includes("localhost")) return null;
 
   return (
     <div className="rounded-md border border-dashed bg-muted/50 p-3 text-sm">
@@ -120,11 +120,11 @@ function DeleteMeDemoAccount() {
       <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
         <dt className="text-muted-foreground">Email</dt>
         <dd>
-          <code className="select-all">demo@mugnavo.com</code>
+          <code className="select-all">demo@sho-vee.dev</code>
         </dd>
         <dt className="text-muted-foreground">Password</dt>
         <dd>
-          <code className="select-all">demo1234</code>
+          <code className="select-all">Demo1234!</code>
         </dd>
       </dl>
     </div>

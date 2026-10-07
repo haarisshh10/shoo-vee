@@ -34,11 +34,11 @@ function RouteComponent() {
       <div className="flex w-full max-w-sm flex-col gap-8">
         <Link
           to="/"
-          aria-label="Acme Inc. home"
+          aria-label="Sho-vee home"
           className="mx-auto flex items-center gap-2 font-semibold tracking-tight"
         >
           <GalleryVerticalEndIcon className="size-6" aria-hidden="true" />
-          Acme Inc.
+          Sho-vee
         </Link>
         <Outlet />
       </div>

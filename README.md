@@ -24,7 +24,17 @@ A demo account exists in the local dev database (created via the real signup API
 - Email: `demo@sho-vee.dev`
 - Password: `Demo1234!`
 
-Log in at `/login`, then visit `/app`, `/app/profile`, `/app/profile/creator`, `/app/portfolio`.
+Log in at `/login`, then visit `/app`, `/app/profile`, `/app/profile/creator`, `/app/portfolio`. This account is an admin, so `/admin` works too.
+
+### Demo / seed data
+
+With the dev server running (`localhost` in `VITE_BASE_URL`), seed the local database with fictional creators, portfolio items, services, equipment, gigs, posts, bookings, and one review:
+
+```sh
+curl -X POST http://localhost:3000/api/seed
+```
+
+It is idempotent — if creators already exist it skips. Seeded creator accounts log in with `Demo1234!` (emails like `asha@example.dev`).
 
 ### Where things live
 

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import { db } from "#/lib/db/index.ts";
 import { gig, gigApplication, user } from "#/lib/db/schema/index.ts";
+import { notify } from "#/lib/notifications/functions.ts";
 
 const createGigSchema = z.object({
   title: z.string().trim().min(1).max(160),
@@ -128,6 +129,11 @@ export const $applyToGig = createServerFn({ method: "POST" })
         .insert(gigApplication)
         .values({ gigId: target.id, applicantId: context.user.id, message: data.message ?? null })
         .returning();
+      await notify(target.posterId, {
+        type: "application",
+        title: "New gig application",
+        body: `Someone applied to "${target.title}".`,
+      });
       return created;
     } catch {
       throw new Error("You have already applied to this gig.");
@@ -155,5 +161,10 @@ export const $transitionGigApplication = createServerFn({ method: "POST" })
       .set({ status: data.action === "accept" ? "accepted" : "rejected" })
       .where(eq(gigApplication.id, row.application.id))
       .returning();
+    await notify(row.application.applicantId, {
+      type: "application",
+      title: `Application ${data.action === "accept" ? "accepted" : "rejected"}`,
+      body: `Your application to "${row.gig.title}" was ${data.action === "accept" ? "accepted" : "rejected"}.`,
+    });
     return updated;
   });

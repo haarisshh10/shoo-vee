@@ -5,6 +5,7 @@ import { z } from "zod";
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import { db } from "#/lib/db/index.ts";
 import { booking, creatorProfile, review } from "#/lib/db/schema/index.ts";
+import { notify } from "#/lib/notifications/functions.ts";
 
 const createReviewSchema = z.object({
   bookingId: z.string(),
@@ -38,6 +39,19 @@ export const $createReview = createServerFn({ method: "POST" })
         comment: data.comment ?? null,
       })
       .returning();
+
+    const [creator] = await db
+      .select()
+      .from(creatorProfile)
+      .where(eq(creatorProfile.id, b.creatorId))
+      .limit(1);
+    if (creator) {
+      await notify(creator.userId, {
+        type: "review",
+        title: "New review",
+        body: `You received a ${data.rating}-star review.`,
+      });
+    }
     return created;
   });
 
