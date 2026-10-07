@@ -30,7 +30,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         name: "description",
-        content: "A TanStack Start project scaffolded with create-cove.",
+        content: "Sho-vee — discover, hire and grow with visual creators.",
       },
     ],
     links: [

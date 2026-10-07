@@ -11,7 +11,7 @@ import { useAuth } from "#/lib/auth/hooks.ts";
 import { $applyToGig, $createGig, type CreateGigInput } from "#/lib/gigs/functions.ts";
 import { gigsQueryOptions } from "#/lib/gigs/queries.ts";
 
-export const Route = createFileRoute("/gigs")({
+export const Route = createFileRoute("/_public/gigs")({
   component: GigsPage,
 });
 

@@ -9,18 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as GuestRouteRouteImport } from './routes/_guest/route'
-import { Route as DiscoverRouteImport } from './routes/discover'
-import { Route as GigsRouteImport } from './routes/gigs'
-import { Route as ShotsRouteImport } from './routes/shots'
+import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AuthAppRouteRouteImport } from './routes/_auth/app/route'
 import { Route as GuestLoginRouteImport } from './routes/_guest/login'
 import { Route as GuestSignupRouteImport } from './routes/_guest/signup'
+import { Route as PublicIndexRouteImport } from './routes/_public/index'
+import { Route as PublicDiscoverRouteImport } from './routes/_public/discover'
+import { Route as PublicGigsRouteImport } from './routes/_public/gigs'
+import { Route as PublicShotsRouteImport } from './routes/_public/shots'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as CreatorsCreatorIdRouteImport } from './routes/creators/$creatorId'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
+import { Route as PublicCreatorsCreatorIdRouteImport } from './routes/_public/creators/$creatorId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthAppBookingsIndexRouteImport } from './routes/_auth/app/bookings/index'
 import { Route as AuthAppEquipmentIndexRouteImport } from './routes/_auth/app/equipment/index'
@@ -32,11 +33,6 @@ import { Route as AuthAppProfileIndexRouteImport } from './routes/_auth/app/prof
 import { Route as AuthAppProfileCreatorRouteImport } from './routes/_auth/app/profile/creator'
 import { Route as AuthAppServicesIndexRouteImport } from './routes/_auth/app/services/index'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
@@ -45,19 +41,8 @@ const GuestRouteRoute = GuestRouteRouteImport.update({
   id: '/_guest',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DiscoverRoute = DiscoverRouteImport.update({
-  id: '/discover',
-  path: '/discover',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GigsRoute = GigsRouteImport.update({
-  id: '/gigs',
-  path: '/gigs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShotsRoute = ShotsRouteImport.update({
-  id: '/shots',
-  path: '/shots',
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthAppRouteRoute = AuthAppRouteRouteImport.update({
@@ -75,20 +60,40 @@ const GuestSignupRoute = GuestSignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => GuestRouteRoute,
 } as any)
+const PublicIndexRoute = PublicIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicDiscoverRoute = PublicDiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicGigsRoute = PublicGigsRouteImport.update({
+  id: '/gigs',
+  path: '/gigs',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicShotsRoute = PublicShotsRouteImport.update({
+  id: '/shots',
+  path: '/shots',
+  getParentRoute: () => PublicRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CreatorsCreatorIdRoute = CreatorsCreatorIdRouteImport.update({
-  id: '/creators/$creatorId',
-  path: '/creators/$creatorId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthAppIndexRoute = AuthAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthAppRouteRoute,
+} as any)
+const PublicCreatorsCreatorIdRoute = PublicCreatorsCreatorIdRouteImport.update({
+  id: '/creators/$creatorId',
+  path: '/creators/$creatorId',
+  getParentRoute: () => PublicRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -142,15 +147,15 @@ const AuthAppServicesIndexRoute = AuthAppServicesIndexRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/discover': typeof DiscoverRoute
-  '/gigs': typeof GigsRoute
-  '/shots': typeof ShotsRoute
+  '/': typeof PublicIndexRoute
   '/app': typeof AuthAppRouteRouteWithChildren
   '/login': typeof GuestLoginRoute
   '/signup': typeof GuestSignupRoute
-  '/creators/$creatorId': typeof CreatorsCreatorIdRoute
+  '/discover': typeof PublicDiscoverRoute
+  '/gigs': typeof PublicGigsRoute
+  '/shots': typeof PublicShotsRoute
   '/admin/': typeof AdminIndexRoute
+  '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
   '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
@@ -164,14 +169,14 @@ export interface FileRoutesByFullPath {
   '/app/services/': typeof AuthAppServicesIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/discover': typeof DiscoverRoute
-  '/gigs': typeof GigsRoute
-  '/shots': typeof ShotsRoute
+  '/': typeof PublicIndexRoute
   '/login': typeof GuestLoginRoute
   '/signup': typeof GuestSignupRoute
-  '/creators/$creatorId': typeof CreatorsCreatorIdRoute
+  '/discover': typeof PublicDiscoverRoute
+  '/gigs': typeof PublicGigsRoute
+  '/shots': typeof PublicShotsRoute
   '/admin': typeof AdminIndexRoute
+  '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
   '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
@@ -186,17 +191,18 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_guest': typeof GuestRouteRouteWithChildren
-  '/discover': typeof DiscoverRoute
-  '/gigs': typeof GigsRoute
-  '/shots': typeof ShotsRoute
+  '/_public': typeof PublicRouteWithChildren
   '/_auth/app': typeof AuthAppRouteRouteWithChildren
   '/_guest/login': typeof GuestLoginRoute
   '/_guest/signup': typeof GuestSignupRoute
-  '/creators/$creatorId': typeof CreatorsCreatorIdRoute
+  '/_public/discover': typeof PublicDiscoverRoute
+  '/_public/gigs': typeof PublicGigsRoute
+  '/_public/shots': typeof PublicShotsRoute
+  '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_public/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
   '/_auth/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
@@ -213,14 +219,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/discover'
-    | '/gigs'
-    | '/shots'
     | '/app'
     | '/login'
     | '/signup'
-    | '/creators/$creatorId'
+    | '/discover'
+    | '/gigs'
+    | '/shots'
     | '/admin/'
+    | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app/'
     | '/app/gigs/$gigId'
@@ -235,13 +241,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
+    | '/signup'
     | '/discover'
     | '/gigs'
     | '/shots'
-    | '/login'
-    | '/signup'
-    | '/creators/$creatorId'
     | '/admin'
+    | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app'
     | '/app/gigs/$gigId'
@@ -255,17 +261,18 @@ export interface FileRouteTypes {
     | '/app/services'
   id:
     | '__root__'
-    | '/'
     | '/_auth'
     | '/_guest'
-    | '/discover'
-    | '/gigs'
-    | '/shots'
+    | '/_public'
     | '/_auth/app'
     | '/_guest/login'
     | '/_guest/signup'
-    | '/creators/$creatorId'
+    | '/_public/discover'
+    | '/_public/gigs'
+    | '/_public/shots'
+    | '/_public/'
     | '/admin/'
+    | '/_public/creators/$creatorId'
     | '/api/auth/$'
     | '/_auth/app/'
     | '/_auth/app/gigs/$gigId'
@@ -280,26 +287,15 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   GuestRouteRoute: typeof GuestRouteRouteWithChildren
-  DiscoverRoute: typeof DiscoverRoute
-  GigsRoute: typeof GigsRoute
-  ShotsRoute: typeof ShotsRoute
-  CreatorsCreatorIdRoute: typeof CreatorsCreatorIdRoute
+  PublicRoute: typeof PublicRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -314,25 +310,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuestRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/discover': {
-      id: '/discover'
-      path: '/discover'
-      fullPath: '/discover'
-      preLoaderRoute: typeof DiscoverRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gigs': {
-      id: '/gigs'
-      path: '/gigs'
-      fullPath: '/gigs'
-      preLoaderRoute: typeof GigsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/shots': {
-      id: '/shots'
-      path: '/shots'
-      fullPath: '/shots'
-      preLoaderRoute: typeof ShotsRouteImport
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/app': {
@@ -356,18 +338,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuestSignupRouteImport
       parentRoute: typeof GuestRouteRoute
     }
+    '/_public/': {
+      id: '/_public/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/discover': {
+      id: '/_public/discover'
+      path: '/discover'
+      fullPath: '/discover'
+      preLoaderRoute: typeof PublicDiscoverRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/gigs': {
+      id: '/_public/gigs'
+      path: '/gigs'
+      fullPath: '/gigs'
+      preLoaderRoute: typeof PublicGigsRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/shots': {
+      id: '/_public/shots'
+      path: '/shots'
+      fullPath: '/shots'
+      preLoaderRoute: typeof PublicShotsRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/creators/$creatorId': {
-      id: '/creators/$creatorId'
-      path: '/creators/$creatorId'
-      fullPath: '/creators/$creatorId'
-      preLoaderRoute: typeof CreatorsCreatorIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/app/': {
@@ -376,6 +379,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AuthAppIndexRouteImport
       parentRoute: typeof AuthAppRouteRoute
+    }
+    '/_public/creators/$creatorId': {
+      id: '/_public/creators/$creatorId'
+      path: '/creators/$creatorId'
+      fullPath: '/creators/$creatorId'
+      preLoaderRoute: typeof PublicCreatorsCreatorIdRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -506,14 +516,29 @@ const GuestRouteRouteWithChildren = GuestRouteRoute._addFileChildren(
   GuestRouteRouteChildren,
 )
 
+interface PublicRouteChildren {
+  PublicDiscoverRoute: typeof PublicDiscoverRoute
+  PublicGigsRoute: typeof PublicGigsRoute
+  PublicShotsRoute: typeof PublicShotsRoute
+  PublicIndexRoute: typeof PublicIndexRoute
+  PublicCreatorsCreatorIdRoute: typeof PublicCreatorsCreatorIdRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicDiscoverRoute: PublicDiscoverRoute,
+  PublicGigsRoute: PublicGigsRoute,
+  PublicShotsRoute: PublicShotsRoute,
+  PublicIndexRoute: PublicIndexRoute,
+  PublicCreatorsCreatorIdRoute: PublicCreatorsCreatorIdRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   GuestRouteRoute: GuestRouteRouteWithChildren,
-  DiscoverRoute: DiscoverRoute,
-  GigsRoute: GigsRoute,
-  ShotsRoute: ShotsRoute,
-  CreatorsCreatorIdRoute: CreatorsCreatorIdRoute,
+  PublicRoute: PublicRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

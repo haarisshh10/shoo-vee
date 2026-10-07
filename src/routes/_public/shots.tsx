@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { feedQueryOptions } from "#/lib/posts/queries.ts";
 
-export const Route = createFileRoute("/shots")({
+export const Route = createFileRoute("/_public/shots")({
   component: ShotsPage,
 });
 

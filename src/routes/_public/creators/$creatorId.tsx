@@ -5,7 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BookingForm } from "#/components/bookings/booking-form.tsx";
 import { $getCreatorById } from "#/lib/creators/functions.ts";
 
-export const Route = createFileRoute("/creators/$creatorId")({
+export const Route = createFileRoute("/_public/creators/$creatorId")({
   component: CreatorPage,
 });
 

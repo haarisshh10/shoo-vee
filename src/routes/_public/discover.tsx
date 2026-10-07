@@ -8,7 +8,7 @@ import { Label } from "#/components/ui/label.tsx";
 import type { CreatorSearch } from "#/lib/discovery/functions.ts";
 import { searchCreatorsQueryOptions } from "#/lib/discovery/queries.ts";
 
-export const Route = createFileRoute("/discover")({
+export const Route = createFileRoute("/_public/discover")({
   component: DiscoverPage,
 });
 
