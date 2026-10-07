@@ -1,2 +1,11 @@
 export * from "./auth.schema";
-// export your other schemas here
+export * from "./types";
+export * from "./creator.schema";
+export * from "./portfolio.schema";
+export * from "./service.schema";
+export * from "./equipment.schema";
+export * from "./post.schema";
+export * from "./booking.schema";
+export * from "./gig.schema";
+export * from "./review.schema";
+export * from "./notification.schema";
