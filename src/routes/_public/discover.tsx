@@ -29,7 +29,9 @@ function DiscoverPage() {
     location: "",
     creatorTypes: [],
     equipment: "",
+    specialty: "",
     verifiedOnly: false,
+    limit: 12,
     sort: "recommended",
   });
 
@@ -49,8 +51,11 @@ function DiscoverPage() {
       location: str("location"),
       creatorTypes: types,
       equipment: str("equipment"),
+      specialty: str("specialty"),
       maxPrice: str("maxPrice") !== "" ? Number(str("maxPrice")) : undefined,
+      minRating: str("minRating") !== "" ? Number(str("minRating")) : undefined,
       verifiedOnly: formData.get("verifiedOnly") === "on",
+      limit: 12,
       sort: str("sort") as CreatorSearch["sort"],
     });
   };
@@ -85,20 +90,38 @@ function DiscoverPage() {
             <Input id="maxPrice" name="maxPrice" type="number" min={0} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="sort">Sort</Label>
+            <Label htmlFor="minRating">Minimum rating</Label>
             <select
-              id="sort"
-              name="sort"
-              defaultValue="recommended"
+              id="minRating"
+              name="minRating"
+              defaultValue=""
               className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
             >
-              <option value="recommended">Recommended</option>
-              <option value="rating">Rating</option>
-              <option value="price_low">Price: low to high</option>
-              <option value="price_high">Price: high to low</option>
-              <option value="newest">Newest</option>
+              <option value="">Any</option>
+              <option value="4">4+ stars</option>
+              <option value="3">3+ stars</option>
+              <option value="2">2+ stars</option>
             </select>
           </div>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="specialty">Specialty</Label>
+          <Input id="specialty" name="specialty" placeholder="weddings" />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="sort">Sort</Label>
+          <select
+            id="sort"
+            name="sort"
+            defaultValue="recommended"
+            className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+          >
+            <option value="recommended">Recommended</option>
+            <option value="rating">Rating</option>
+            <option value="price_low">Price: low to high</option>
+            <option value="price_high">Price: high to low</option>
+            <option value="newest">Newest</option>
+          </select>
         </div>
         <fieldset className="grid gap-2">
           <legend className="text-sm font-medium">Creator types</legend>
@@ -175,6 +198,16 @@ function DiscoverPage() {
         </ul>
       ) : (
         <p className="text-sm text-muted-foreground">No creators match your filters.</p>
+      )}
+
+      {creators && creators.length >= filters.limit && (
+        <Button
+          variant="outline"
+          className="w-fit"
+          onClick={() => setFilters((f) => ({ ...f, limit: Math.min(50, f.limit + 12) }))}
+        >
+          Load more
+        </Button>
       )}
     </div>
   );

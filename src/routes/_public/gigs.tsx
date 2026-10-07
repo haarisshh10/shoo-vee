@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { LoaderCircleIcon } from "lucide-react";
 import { useState } from "react";
 
+import { ReportButton } from "#/components/reports/report-button.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
@@ -173,6 +174,7 @@ function GigsPage() {
                   Apply
                 </Button>
               )}
+              <ReportButton targetType="gig" targetId={g.id} />
             </li>
           ))}
         </ul>

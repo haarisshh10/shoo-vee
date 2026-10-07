@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { ReportButton } from "#/components/reports/report-button.tsx";
 import { feedQueryOptions } from "#/lib/posts/queries.ts";
 
 export const Route = createFileRoute("/_public/shots")({
@@ -44,13 +45,16 @@ function ShotsPage() {
               {post.caption && (
                 <p className="line-clamp-2 text-sm text-muted-foreground">{post.caption}</p>
               )}
-              <Link
-                to="/creators/$creatorId"
-                params={{ creatorId: creator.id }}
-                className="text-sm font-medium hover:underline"
-              >
-                {creator.displayName}
-              </Link>
+              <div className="flex items-center justify-between">
+                <Link
+                  to="/creators/$creatorId"
+                  params={{ creatorId: creator.id }}
+                  className="text-sm font-medium hover:underline"
+                >
+                  {creator.displayName}
+                </Link>
+                <ReportButton targetType="post" targetId={post.id} />
+              </div>
             </li>
           ))}
         </ul>

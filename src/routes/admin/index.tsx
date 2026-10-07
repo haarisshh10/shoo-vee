@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { LoaderCircleIcon } from "lucide-react";
 
 import { Button } from "#/components/ui/button.tsx";
@@ -65,7 +65,12 @@ function AdminPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-10">
-      <h1 className="text-2xl font-semibold">Admin</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Admin</h1>
+        <Link to="/admin/reports" className="text-sm underline">
+          Reports
+        </Link>
+      </div>
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Creators</h2>

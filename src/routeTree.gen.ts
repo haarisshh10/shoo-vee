@@ -23,6 +23,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ApiSeedRouteImport } from './routes/api/seed'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as PublicCreatorsCreatorIdRouteImport } from './routes/_public/creators/$creatorId'
+import { Route as AdminReportsIndexRouteImport } from './routes/admin/reports/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthAppBookingsIndexRouteImport } from './routes/_auth/app/bookings/index'
 import { Route as AuthAppEquipmentIndexRouteImport } from './routes/_auth/app/equipment/index'
@@ -101,6 +102,11 @@ const PublicCreatorsCreatorIdRoute = PublicCreatorsCreatorIdRouteImport.update({
   path: '/creators/$creatorId',
   getParentRoute: () => PublicRoute,
 } as any)
+const AdminReportsIndexRoute = AdminReportsIndexRouteImport.update({
+  id: '/admin/reports/',
+  path: '/admin/reports/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
+  '/admin/reports/': typeof AdminReportsIndexRoute
   '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
   '/app/bookings/': typeof AuthAppBookingsIndexRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
+  '/admin/reports': typeof AdminReportsIndexRoute
   '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
   '/app/bookings': typeof AuthAppBookingsIndexRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/_public/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
+  '/admin/reports/': typeof AdminReportsIndexRoute
   '/_auth/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
   '/_auth/app/profile/creator': typeof AuthAppProfileCreatorRoute
   '/_auth/app/bookings/': typeof AuthAppBookingsIndexRoute
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app/'
+    | '/admin/reports/'
     | '/app/gigs/$gigId'
     | '/app/profile/creator'
     | '/app/bookings/'
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app'
+    | '/admin/reports'
     | '/app/gigs/$gigId'
     | '/app/profile/creator'
     | '/app/bookings'
@@ -287,6 +298,7 @@ export interface FileRouteTypes {
     | '/_public/creators/$creatorId'
     | '/api/auth/$'
     | '/_auth/app/'
+    | '/admin/reports/'
     | '/_auth/app/gigs/$gigId'
     | '/_auth/app/profile/creator'
     | '/_auth/app/bookings/'
@@ -305,6 +317,7 @@ export interface RootRouteChildren {
   ApiSeedRoute: typeof ApiSeedRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  AdminReportsIndexRoute: typeof AdminReportsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -406,6 +419,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/creators/$creatorId'
       preLoaderRoute: typeof PublicCreatorsCreatorIdRouteImport
       parentRoute: typeof PublicRoute
+    }
+    '/admin/reports/': {
+      id: '/admin/reports/'
+      path: '/admin/reports'
+      fullPath: '/admin/reports/'
+      preLoaderRoute: typeof AdminReportsIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -562,6 +582,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSeedRoute: ApiSeedRoute,
   AdminIndexRoute: AdminIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  AdminReportsIndexRoute: AdminReportsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

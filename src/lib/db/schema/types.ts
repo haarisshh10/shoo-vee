@@ -54,4 +54,5 @@ export type NotificationType =
   | "application"
   | "review"
   | "verification"
+  | "report"
   | "system";

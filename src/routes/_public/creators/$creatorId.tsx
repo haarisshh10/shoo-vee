@@ -3,6 +3,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BookingForm } from "#/components/bookings/booking-form.tsx";
+import { ReportButton } from "#/components/reports/report-button.tsx";
 import { $getCreatorById } from "#/lib/creators/functions.ts";
 
 export const Route = createFileRoute("/_public/creators/$creatorId")({
@@ -59,6 +60,7 @@ function CreatorPage() {
           </div>
         </div>
         {profile.bio && <p className="text-sm">{profile.bio}</p>}
+        <ReportButton targetType="creator_profile" targetId={profile.id} />
       </header>
 
       <section>

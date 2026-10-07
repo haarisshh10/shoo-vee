@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, arrayOverlaps, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, arrayContains, arrayOverlaps, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "#/lib/db/index.ts";
@@ -19,6 +19,9 @@ export const searchSchema = z.object({
   maxPrice: z.number().int().min(0).optional(),
   verifiedOnly: z.boolean().default(false),
   equipment: z.string().trim().max(120).default(""),
+  specialty: z.string().trim().max(60).default(""),
+  minRating: z.number().min(0).max(5).optional(),
+  limit: z.number().int().min(1).max(50).default(12),
   sort: z
     .enum(["recommended", "rating", "price_low", "price_high", "newest"])
     .default("recommended"),
@@ -53,6 +56,9 @@ export const $searchCreators = createServerFn({ method: "GET" })
     if (data.verifiedOnly) {
       conditions.push(eq(creatorProfile.verificationStatus, "verified"));
     }
+    if (data.specialty) {
+      conditions.push(arrayContains(creatorProfile.specialties, [data.specialty]));
+    }
 
     let creatorIds: string[] | undefined;
     if (data.equipment) {
@@ -74,7 +80,7 @@ export const $searchCreators = createServerFn({ method: "GET" })
       .from(creatorProfile)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(creatorProfile.createdAt))
-      .limit(50);
+      .limit(data.limit);
 
     if (creators.length === 0) return [];
 
@@ -109,7 +115,12 @@ export const $searchCreators = createServerFn({ method: "GET" })
       previewImage: previewMap.get(c.id) ?? null,
     }));
 
-    enriched.sort((a, b) => {
+    const filtered =
+      data.minRating !== undefined
+        ? enriched.filter((c) => c.avgRating !== null && c.avgRating >= data.minRating!)
+        : enriched;
+
+    filtered.sort((a, b) => {
       switch (data.sort) {
         case "price_low":
           return (a.startingPrice ?? Infinity) - (b.startingPrice ?? Infinity);
@@ -128,5 +139,5 @@ export const $searchCreators = createServerFn({ method: "GET" })
       }
     });
 
-    return enriched;
+    return filtered;
   });
