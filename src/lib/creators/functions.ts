@@ -1,10 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import { db } from "#/lib/db/index.ts";
-import { creatorProfile } from "#/lib/db/schema/index.ts";
+import {
+  creatorEquipment,
+  creatorProfile,
+  equipment,
+  portfolioItem,
+  review,
+  service,
+  user,
+} from "#/lib/db/schema/index.ts";
 
 const creatorTypes = [
   "photographer",
@@ -33,6 +41,43 @@ export const createProfileSchema = z.object({
   languages: z.array(z.string().trim().min(1).max(50)).max(20).default([]),
   availabilityStatus: z.enum(["available", "busy", "unavailable"]).default("available"),
 });
+
+export const $getCreatorById = createServerFn({ method: "GET" })
+  .validator((data) => z.object({ creatorId: z.string() }).parse(data))
+  .handler(async ({ data }) => {
+    const [profile] = await db
+      .select()
+      .from(creatorProfile)
+      .where(eq(creatorProfile.id, data.creatorId))
+      .limit(1);
+    if (!profile) return null;
+
+    const [portfolioItems, services, equipmentRows, reviews] = await Promise.all([
+      db
+        .select()
+        .from(portfolioItem)
+        .where(eq(portfolioItem.creatorId, profile.id))
+        .orderBy(desc(portfolioItem.createdAt)),
+      db
+        .select()
+        .from(service)
+        .where(eq(service.creatorId, profile.id))
+        .orderBy(desc(service.createdAt)),
+      db
+        .select({ equipment })
+        .from(creatorEquipment)
+        .innerJoin(equipment, eq(creatorEquipment.equipmentId, equipment.id))
+        .where(eq(creatorEquipment.creatorId, profile.id)),
+      db
+        .select({ review, reviewerName: user.name })
+        .from(review)
+        .innerJoin(user, eq(review.reviewerId, user.id))
+        .where(eq(review.creatorId, profile.id))
+        .orderBy(desc(review.createdAt)),
+    ]);
+
+    return { profile, portfolioItems, services, equipment: equipmentRows, reviews };
+  });
 
 export type CreatorProfileInput = z.infer<typeof createProfileSchema>;
 

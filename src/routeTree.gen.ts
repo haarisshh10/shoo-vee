@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as GuestRouteRouteImport } from './routes/_guest/route'
+import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as AuthAppRouteRouteImport } from './routes/_auth/app/route'
 import { Route as GuestLoginRouteImport } from './routes/_guest/login'
 import { Route as GuestSignupRouteImport } from './routes/_guest/signup'
+import { Route as CreatorsCreatorIdRouteImport } from './routes/creators/$creatorId'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthAppEquipmentIndexRouteImport } from './routes/_auth/app/equipment/index'
@@ -36,6 +38,11 @@ const GuestRouteRoute = GuestRouteRouteImport.update({
   id: '/_guest',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiscoverRoute = DiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthAppRouteRoute = AuthAppRouteRouteImport.update({
   id: '/app',
   path: '/app',
@@ -50,6 +57,11 @@ const GuestSignupRoute = GuestSignupRouteImport.update({
   id: '/signup',
   path: '/signup',
   getParentRoute: () => GuestRouteRoute,
+} as any)
+const CreatorsCreatorIdRoute = CreatorsCreatorIdRouteImport.update({
+  id: '/creators/$creatorId',
+  path: '/creators/$creatorId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthAppIndexRoute = AuthAppIndexRouteImport.update({
   id: '/',
@@ -89,9 +101,11 @@ const AuthAppServicesIndexRoute = AuthAppServicesIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/discover': typeof DiscoverRoute
   '/app': typeof AuthAppRouteRouteWithChildren
   '/login': typeof GuestLoginRoute
   '/signup': typeof GuestSignupRoute
+  '/creators/$creatorId': typeof CreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
@@ -102,8 +116,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/discover': typeof DiscoverRoute
   '/login': typeof GuestLoginRoute
   '/signup': typeof GuestSignupRoute
+  '/creators/$creatorId': typeof CreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
@@ -117,9 +133,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_guest': typeof GuestRouteRouteWithChildren
+  '/discover': typeof DiscoverRoute
   '/_auth/app': typeof AuthAppRouteRouteWithChildren
   '/_guest/login': typeof GuestLoginRoute
   '/_guest/signup': typeof GuestSignupRoute
+  '/creators/$creatorId': typeof CreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
   '/_auth/app/profile/creator': typeof AuthAppProfileCreatorRoute
@@ -132,9 +150,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/discover'
     | '/app'
     | '/login'
     | '/signup'
+    | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app/'
     | '/app/profile/creator'
@@ -145,8 +165,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/discover'
     | '/login'
     | '/signup'
+    | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app'
     | '/app/profile/creator'
@@ -159,9 +181,11 @@ export interface FileRouteTypes {
     | '/'
     | '/_auth'
     | '/_guest'
+    | '/discover'
     | '/_auth/app'
     | '/_guest/login'
     | '/_guest/signup'
+    | '/creators/$creatorId'
     | '/api/auth/$'
     | '/_auth/app/'
     | '/_auth/app/profile/creator'
@@ -175,6 +199,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   GuestRouteRoute: typeof GuestRouteRouteWithChildren
+  DiscoverRoute: typeof DiscoverRoute
+  CreatorsCreatorIdRoute: typeof CreatorsCreatorIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -201,6 +227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuestRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/discover': {
+      id: '/discover'
+      path: '/discover'
+      fullPath: '/discover'
+      preLoaderRoute: typeof DiscoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth/app': {
       id: '/_auth/app'
       path: '/app'
@@ -221,6 +254,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/signup'
       preLoaderRoute: typeof GuestSignupRouteImport
       parentRoute: typeof GuestRouteRoute
+    }
+    '/creators/$creatorId': {
+      id: '/creators/$creatorId'
+      path: '/creators/$creatorId'
+      fullPath: '/creators/$creatorId'
+      preLoaderRoute: typeof CreatorsCreatorIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_auth/app/': {
       id: '/_auth/app/'
@@ -326,6 +366,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
   GuestRouteRoute: GuestRouteRouteWithChildren,
+  DiscoverRoute: DiscoverRoute,
+  CreatorsCreatorIdRoute: CreatorsCreatorIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
