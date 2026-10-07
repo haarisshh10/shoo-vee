@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery as useReviewable } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { LoaderCircleIcon } from "lucide-react";
 
+import { ReviewForm } from "#/components/reviews/review-form.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { toast } from "#/components/ui/toast.tsx";
 import { $transitionBooking } from "#/lib/bookings/functions.ts";
@@ -9,6 +11,7 @@ import {
   myCreatorBookingsQueryOptions,
   myCustomerBookingsQueryOptions,
 } from "#/lib/bookings/queries.ts";
+import { reviewableQueryOptions } from "#/lib/reviews/queries.ts";
 
 export const Route = createFileRoute("/_auth/app/bookings/")({
   component: BookingsPage,
@@ -26,6 +29,7 @@ function BookingsPage() {
   const queryClient = useQueryClient();
   const asCustomer = useQuery(myCustomerBookingsQueryOptions());
   const asCreator = useQuery(myCreatorBookingsQueryOptions());
+  const reviewable = useReviewable(reviewableQueryOptions());
 
   const { mutate: transition, isPending: isUpdating } = useMutation({
     mutationFn: async (data: {
@@ -89,6 +93,20 @@ function BookingsPage() {
           <p className="text-sm text-muted-foreground">No bookings yet.</p>
         )}
       </section>
+
+      {reviewable.data && reviewable.data.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">Leave a review</h2>
+          <ul className="flex flex-col gap-3">
+            {reviewable.data.map(({ booking: b, creator }) => (
+              <li key={b.id} className="rounded-md border p-3">
+                <p className="text-sm font-medium">{creator.displayName}</p>
+                <ReviewForm bookingId={b.id} creatorName={creator.displayName} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">As a creator</h2>
