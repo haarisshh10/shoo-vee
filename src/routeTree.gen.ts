@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as GuestRouteRouteImport } from './routes/_guest/route'
 import { Route as DiscoverRouteImport } from './routes/discover'
+import { Route as GigsRouteImport } from './routes/gigs'
 import { Route as ShotsRouteImport } from './routes/shots'
 import { Route as AuthAppRouteRouteImport } from './routes/_auth/app/route'
 import { Route as GuestLoginRouteImport } from './routes/_guest/login'
@@ -22,6 +23,8 @@ import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthAppBookingsIndexRouteImport } from './routes/_auth/app/bookings/index'
 import { Route as AuthAppEquipmentIndexRouteImport } from './routes/_auth/app/equipment/index'
+import { Route as AuthAppGigsIndexRouteImport } from './routes/_auth/app/gigs/index'
+import { Route as AuthAppGigsGigIdRouteImport } from './routes/_auth/app/gigs/$gigId'
 import { Route as AuthAppPortfolioIndexRouteImport } from './routes/_auth/app/portfolio/index'
 import { Route as AuthAppPostsIndexRouteImport } from './routes/_auth/app/posts/index'
 import { Route as AuthAppProfileIndexRouteImport } from './routes/_auth/app/profile/index'
@@ -44,6 +47,11 @@ const GuestRouteRoute = GuestRouteRouteImport.update({
 const DiscoverRoute = DiscoverRouteImport.update({
   id: '/discover',
   path: '/discover',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GigsRoute = GigsRouteImport.update({
+  id: '/gigs',
+  path: '/gigs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShotsRoute = ShotsRouteImport.update({
@@ -91,6 +99,16 @@ const AuthAppEquipmentIndexRoute = AuthAppEquipmentIndexRouteImport.update({
   path: '/equipment/',
   getParentRoute: () => AuthAppRouteRoute,
 } as any)
+const AuthAppGigsIndexRoute = AuthAppGigsIndexRouteImport.update({
+  id: '/gigs/',
+  path: '/gigs/',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
+const AuthAppGigsGigIdRoute = AuthAppGigsGigIdRouteImport.update({
+  id: '/gigs/$gigId',
+  path: '/gigs/$gigId',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
 const AuthAppPortfolioIndexRoute = AuthAppPortfolioIndexRouteImport.update({
   id: '/portfolio/',
   path: '/portfolio/',
@@ -120,6 +138,7 @@ const AuthAppServicesIndexRoute = AuthAppServicesIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/discover': typeof DiscoverRoute
+  '/gigs': typeof GigsRoute
   '/shots': typeof ShotsRoute
   '/app': typeof AuthAppRouteRouteWithChildren
   '/login': typeof GuestLoginRoute
@@ -127,9 +146,11 @@ export interface FileRoutesByFullPath {
   '/creators/$creatorId': typeof CreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
+  '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
   '/app/bookings/': typeof AuthAppBookingsIndexRoute
   '/app/equipment/': typeof AuthAppEquipmentIndexRoute
+  '/app/gigs/': typeof AuthAppGigsIndexRoute
   '/app/portfolio/': typeof AuthAppPortfolioIndexRoute
   '/app/posts/': typeof AuthAppPostsIndexRoute
   '/app/profile/': typeof AuthAppProfileIndexRoute
@@ -138,15 +159,18 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/discover': typeof DiscoverRoute
+  '/gigs': typeof GigsRoute
   '/shots': typeof ShotsRoute
   '/login': typeof GuestLoginRoute
   '/signup': typeof GuestSignupRoute
   '/creators/$creatorId': typeof CreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
+  '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
   '/app/bookings': typeof AuthAppBookingsIndexRoute
   '/app/equipment': typeof AuthAppEquipmentIndexRoute
+  '/app/gigs': typeof AuthAppGigsIndexRoute
   '/app/portfolio': typeof AuthAppPortfolioIndexRoute
   '/app/posts': typeof AuthAppPostsIndexRoute
   '/app/profile': typeof AuthAppProfileIndexRoute
@@ -158,6 +182,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_guest': typeof GuestRouteRouteWithChildren
   '/discover': typeof DiscoverRoute
+  '/gigs': typeof GigsRoute
   '/shots': typeof ShotsRoute
   '/_auth/app': typeof AuthAppRouteRouteWithChildren
   '/_guest/login': typeof GuestLoginRoute
@@ -165,9 +190,11 @@ export interface FileRoutesById {
   '/creators/$creatorId': typeof CreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
+  '/_auth/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
   '/_auth/app/profile/creator': typeof AuthAppProfileCreatorRoute
   '/_auth/app/bookings/': typeof AuthAppBookingsIndexRoute
   '/_auth/app/equipment/': typeof AuthAppEquipmentIndexRoute
+  '/_auth/app/gigs/': typeof AuthAppGigsIndexRoute
   '/_auth/app/portfolio/': typeof AuthAppPortfolioIndexRoute
   '/_auth/app/posts/': typeof AuthAppPostsIndexRoute
   '/_auth/app/profile/': typeof AuthAppProfileIndexRoute
@@ -178,6 +205,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/discover'
+    | '/gigs'
     | '/shots'
     | '/app'
     | '/login'
@@ -185,9 +213,11 @@ export interface FileRouteTypes {
     | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app/'
+    | '/app/gigs/$gigId'
     | '/app/profile/creator'
     | '/app/bookings/'
     | '/app/equipment/'
+    | '/app/gigs/'
     | '/app/portfolio/'
     | '/app/posts/'
     | '/app/profile/'
@@ -196,15 +226,18 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/discover'
+    | '/gigs'
     | '/shots'
     | '/login'
     | '/signup'
     | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app'
+    | '/app/gigs/$gigId'
     | '/app/profile/creator'
     | '/app/bookings'
     | '/app/equipment'
+    | '/app/gigs'
     | '/app/portfolio'
     | '/app/posts'
     | '/app/profile'
@@ -215,6 +248,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_guest'
     | '/discover'
+    | '/gigs'
     | '/shots'
     | '/_auth/app'
     | '/_guest/login'
@@ -222,9 +256,11 @@ export interface FileRouteTypes {
     | '/creators/$creatorId'
     | '/api/auth/$'
     | '/_auth/app/'
+    | '/_auth/app/gigs/$gigId'
     | '/_auth/app/profile/creator'
     | '/_auth/app/bookings/'
     | '/_auth/app/equipment/'
+    | '/_auth/app/gigs/'
     | '/_auth/app/portfolio/'
     | '/_auth/app/posts/'
     | '/_auth/app/profile/'
@@ -236,6 +272,7 @@ export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   GuestRouteRoute: typeof GuestRouteRouteWithChildren
   DiscoverRoute: typeof DiscoverRoute
+  GigsRoute: typeof GigsRoute
   ShotsRoute: typeof ShotsRoute
   CreatorsCreatorIdRoute: typeof CreatorsCreatorIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -269,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/discover'
       fullPath: '/discover'
       preLoaderRoute: typeof DiscoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gigs': {
+      id: '/gigs'
+      path: '/gigs'
+      fullPath: '/gigs'
+      preLoaderRoute: typeof GigsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shots': {
@@ -334,6 +378,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAppEquipmentIndexRouteImport
       parentRoute: typeof AuthAppRouteRoute
     }
+    '/_auth/app/gigs/': {
+      id: '/_auth/app/gigs/'
+      path: '/gigs'
+      fullPath: '/app/gigs/'
+      preLoaderRoute: typeof AuthAppGigsIndexRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
+    '/_auth/app/gigs/$gigId': {
+      id: '/_auth/app/gigs/$gigId'
+      path: '/gigs/$gigId'
+      fullPath: '/app/gigs/$gigId'
+      preLoaderRoute: typeof AuthAppGigsGigIdRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
     '/_auth/app/portfolio/': {
       id: '/_auth/app/portfolio/'
       path: '/portfolio'
@@ -374,9 +432,11 @@ declare module '@tanstack/react-router' {
 
 interface AuthAppRouteRouteChildren {
   AuthAppIndexRoute: typeof AuthAppIndexRoute
+  AuthAppGigsGigIdRoute: typeof AuthAppGigsGigIdRoute
   AuthAppProfileCreatorRoute: typeof AuthAppProfileCreatorRoute
   AuthAppBookingsIndexRoute: typeof AuthAppBookingsIndexRoute
   AuthAppEquipmentIndexRoute: typeof AuthAppEquipmentIndexRoute
+  AuthAppGigsIndexRoute: typeof AuthAppGigsIndexRoute
   AuthAppPortfolioIndexRoute: typeof AuthAppPortfolioIndexRoute
   AuthAppPostsIndexRoute: typeof AuthAppPostsIndexRoute
   AuthAppProfileIndexRoute: typeof AuthAppProfileIndexRoute
@@ -385,9 +445,11 @@ interface AuthAppRouteRouteChildren {
 
 const AuthAppRouteRouteChildren: AuthAppRouteRouteChildren = {
   AuthAppIndexRoute: AuthAppIndexRoute,
+  AuthAppGigsGigIdRoute: AuthAppGigsGigIdRoute,
   AuthAppProfileCreatorRoute: AuthAppProfileCreatorRoute,
   AuthAppBookingsIndexRoute: AuthAppBookingsIndexRoute,
   AuthAppEquipmentIndexRoute: AuthAppEquipmentIndexRoute,
+  AuthAppGigsIndexRoute: AuthAppGigsIndexRoute,
   AuthAppPortfolioIndexRoute: AuthAppPortfolioIndexRoute,
   AuthAppPostsIndexRoute: AuthAppPostsIndexRoute,
   AuthAppProfileIndexRoute: AuthAppProfileIndexRoute,
@@ -429,6 +491,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
   GuestRouteRoute: GuestRouteRouteWithChildren,
   DiscoverRoute: DiscoverRoute,
+  GigsRoute: GigsRoute,
   ShotsRoute: ShotsRoute,
   CreatorsCreatorIdRoute: CreatorsCreatorIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

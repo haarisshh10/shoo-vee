@@ -9,6 +9,7 @@ import * as schema from "#/lib/db/schema/index.ts";
 
 export const auth = betterAuth({
   baseURL: ENV.VITE_BASE_URL,
+  trustedOrigins: [ENV.VITE_BASE_URL, "http://localhost:*", "http://127.0.0.1:*"],
   telemetry: {
     enabled: false,
   },
