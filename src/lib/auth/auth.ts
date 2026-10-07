@@ -46,6 +46,16 @@ export const auth = betterAuth({
     enabled: true,
   },
 
+  user: {
+    additionalFields: {
+      role: {
+        type: "text",
+        defaultValue: "user",
+        input: false,
+      },
+    },
+  },
+
   advanced: {
     database: {
       // https://better-auth.com/docs/adapters/drizzle#joins

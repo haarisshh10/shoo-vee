@@ -18,6 +18,7 @@ import { Route as ShotsRouteImport } from './routes/shots'
 import { Route as AuthAppRouteRouteImport } from './routes/_auth/app/route'
 import { Route as GuestLoginRouteImport } from './routes/_guest/login'
 import { Route as GuestSignupRouteImport } from './routes/_guest/signup'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as CreatorsCreatorIdRouteImport } from './routes/creators/$creatorId'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -73,6 +74,11 @@ const GuestSignupRoute = GuestSignupRouteImport.update({
   id: '/signup',
   path: '/signup',
   getParentRoute: () => GuestRouteRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CreatorsCreatorIdRoute = CreatorsCreatorIdRouteImport.update({
   id: '/creators/$creatorId',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof GuestLoginRoute
   '/signup': typeof GuestSignupRoute
   '/creators/$creatorId': typeof CreatorsCreatorIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
   '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/login': typeof GuestLoginRoute
   '/signup': typeof GuestSignupRoute
   '/creators/$creatorId': typeof CreatorsCreatorIdRoute
+  '/admin': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
   '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/_guest/login': typeof GuestLoginRoute
   '/_guest/signup': typeof GuestSignupRoute
   '/creators/$creatorId': typeof CreatorsCreatorIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
   '/_auth/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/creators/$creatorId'
+    | '/admin/'
     | '/api/auth/$'
     | '/app/'
     | '/app/gigs/$gigId'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/creators/$creatorId'
+    | '/admin'
     | '/api/auth/$'
     | '/app'
     | '/app/gigs/$gigId'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/_guest/login'
     | '/_guest/signup'
     | '/creators/$creatorId'
+    | '/admin/'
     | '/api/auth/$'
     | '/_auth/app/'
     | '/_auth/app/gigs/$gigId'
@@ -275,6 +287,7 @@ export interface RootRouteChildren {
   GigsRoute: typeof GigsRoute
   ShotsRoute: typeof ShotsRoute
   CreatorsCreatorIdRoute: typeof CreatorsCreatorIdRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -342,6 +355,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/signup'
       preLoaderRoute: typeof GuestSignupRouteImport
       parentRoute: typeof GuestRouteRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/creators/$creatorId': {
       id: '/creators/$creatorId'
@@ -494,6 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   GigsRoute: GigsRoute,
   ShotsRoute: ShotsRoute,
   CreatorsCreatorIdRoute: CreatorsCreatorIdRoute,
+  AdminIndexRoute: AdminIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
