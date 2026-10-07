@@ -20,6 +20,7 @@ import { Route as GuestSignupRouteImport } from './routes/_guest/signup'
 import { Route as CreatorsCreatorIdRouteImport } from './routes/creators/$creatorId'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthAppBookingsIndexRouteImport } from './routes/_auth/app/bookings/index'
 import { Route as AuthAppEquipmentIndexRouteImport } from './routes/_auth/app/equipment/index'
 import { Route as AuthAppPortfolioIndexRouteImport } from './routes/_auth/app/portfolio/index'
 import { Route as AuthAppPostsIndexRouteImport } from './routes/_auth/app/posts/index'
@@ -80,6 +81,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthAppBookingsIndexRoute = AuthAppBookingsIndexRouteImport.update({
+  id: '/bookings/',
+  path: '/bookings/',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
 const AuthAppEquipmentIndexRoute = AuthAppEquipmentIndexRouteImport.update({
   id: '/equipment/',
   path: '/equipment/',
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
+  '/app/bookings/': typeof AuthAppBookingsIndexRoute
   '/app/equipment/': typeof AuthAppEquipmentIndexRoute
   '/app/portfolio/': typeof AuthAppPortfolioIndexRoute
   '/app/posts/': typeof AuthAppPostsIndexRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
+  '/app/bookings': typeof AuthAppBookingsIndexRoute
   '/app/equipment': typeof AuthAppEquipmentIndexRoute
   '/app/portfolio': typeof AuthAppPortfolioIndexRoute
   '/app/posts': typeof AuthAppPostsIndexRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
   '/_auth/app/profile/creator': typeof AuthAppProfileCreatorRoute
+  '/_auth/app/bookings/': typeof AuthAppBookingsIndexRoute
   '/_auth/app/equipment/': typeof AuthAppEquipmentIndexRoute
   '/_auth/app/portfolio/': typeof AuthAppPortfolioIndexRoute
   '/_auth/app/posts/': typeof AuthAppPostsIndexRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/app/'
     | '/app/profile/creator'
+    | '/app/bookings/'
     | '/app/equipment/'
     | '/app/portfolio/'
     | '/app/posts/'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/app'
     | '/app/profile/creator'
+    | '/app/bookings'
     | '/app/equipment'
     | '/app/portfolio'
     | '/app/posts'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/_auth/app/'
     | '/_auth/app/profile/creator'
+    | '/_auth/app/bookings/'
     | '/_auth/app/equipment/'
     | '/_auth/app/portfolio/'
     | '/_auth/app/posts/'
@@ -308,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/app/bookings/': {
+      id: '/_auth/app/bookings/'
+      path: '/bookings'
+      fullPath: '/app/bookings/'
+      preLoaderRoute: typeof AuthAppBookingsIndexRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
     '/_auth/app/equipment/': {
       id: '/_auth/app/equipment/'
       path: '/equipment'
@@ -356,6 +375,7 @@ declare module '@tanstack/react-router' {
 interface AuthAppRouteRouteChildren {
   AuthAppIndexRoute: typeof AuthAppIndexRoute
   AuthAppProfileCreatorRoute: typeof AuthAppProfileCreatorRoute
+  AuthAppBookingsIndexRoute: typeof AuthAppBookingsIndexRoute
   AuthAppEquipmentIndexRoute: typeof AuthAppEquipmentIndexRoute
   AuthAppPortfolioIndexRoute: typeof AuthAppPortfolioIndexRoute
   AuthAppPostsIndexRoute: typeof AuthAppPostsIndexRoute
@@ -366,6 +386,7 @@ interface AuthAppRouteRouteChildren {
 const AuthAppRouteRouteChildren: AuthAppRouteRouteChildren = {
   AuthAppIndexRoute: AuthAppIndexRoute,
   AuthAppProfileCreatorRoute: AuthAppProfileCreatorRoute,
+  AuthAppBookingsIndexRoute: AuthAppBookingsIndexRoute,
   AuthAppEquipmentIndexRoute: AuthAppEquipmentIndexRoute,
   AuthAppPortfolioIndexRoute: AuthAppPortfolioIndexRoute,
   AuthAppPostsIndexRoute: AuthAppPostsIndexRoute,

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { BookingForm } from "#/components/bookings/booking-form.tsx";
 import { $getCreatorById } from "#/lib/creators/functions.ts";
 
 export const Route = createFileRoute("/creators/$creatorId")({
@@ -126,6 +127,11 @@ function CreatorPage() {
         ) : (
           <p className="text-sm text-muted-foreground">No equipment listed.</p>
         )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-semibold">Book / Contact</h2>
+        <BookingForm creatorId={profile.id} services={services} />
       </section>
 
       <section>
