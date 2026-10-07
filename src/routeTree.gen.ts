@@ -17,9 +17,11 @@ import { Route as GuestLoginRouteImport } from './routes/_guest/login'
 import { Route as GuestSignupRouteImport } from './routes/_guest/signup'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthAppEquipmentIndexRouteImport } from './routes/_auth/app/equipment/index'
 import { Route as AuthAppPortfolioIndexRouteImport } from './routes/_auth/app/portfolio/index'
 import { Route as AuthAppProfileIndexRouteImport } from './routes/_auth/app/profile/index'
 import { Route as AuthAppProfileCreatorRouteImport } from './routes/_auth/app/profile/creator'
+import { Route as AuthAppServicesIndexRouteImport } from './routes/_auth/app/services/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,6 +61,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthAppEquipmentIndexRoute = AuthAppEquipmentIndexRouteImport.update({
+  id: '/equipment/',
+  path: '/equipment/',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
 const AuthAppPortfolioIndexRoute = AuthAppPortfolioIndexRouteImport.update({
   id: '/portfolio/',
   path: '/portfolio/',
@@ -74,6 +81,11 @@ const AuthAppProfileCreatorRoute = AuthAppProfileCreatorRouteImport.update({
   path: '/profile/creator',
   getParentRoute: () => AuthAppRouteRoute,
 } as any)
+const AuthAppServicesIndexRoute = AuthAppServicesIndexRouteImport.update({
+  id: '/services/',
+  path: '/services/',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -83,8 +95,10 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
+  '/app/equipment/': typeof AuthAppEquipmentIndexRoute
   '/app/portfolio/': typeof AuthAppPortfolioIndexRoute
   '/app/profile/': typeof AuthAppProfileIndexRoute
+  '/app/services/': typeof AuthAppServicesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -93,8 +107,10 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
+  '/app/equipment': typeof AuthAppEquipmentIndexRoute
   '/app/portfolio': typeof AuthAppPortfolioIndexRoute
   '/app/profile': typeof AuthAppProfileIndexRoute
+  '/app/services': typeof AuthAppServicesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,8 +123,10 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
   '/_auth/app/profile/creator': typeof AuthAppProfileCreatorRoute
+  '/_auth/app/equipment/': typeof AuthAppEquipmentIndexRoute
   '/_auth/app/portfolio/': typeof AuthAppPortfolioIndexRoute
   '/_auth/app/profile/': typeof AuthAppProfileIndexRoute
+  '/_auth/app/services/': typeof AuthAppServicesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -120,8 +138,10 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/app/'
     | '/app/profile/creator'
+    | '/app/equipment/'
     | '/app/portfolio/'
     | '/app/profile/'
+    | '/app/services/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,8 +150,10 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/app'
     | '/app/profile/creator'
+    | '/app/equipment'
     | '/app/portfolio'
     | '/app/profile'
+    | '/app/services'
   id:
     | '__root__'
     | '/'
@@ -143,8 +165,10 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/_auth/app/'
     | '/_auth/app/profile/creator'
+    | '/_auth/app/equipment/'
     | '/_auth/app/portfolio/'
     | '/_auth/app/profile/'
+    | '/_auth/app/services/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -212,6 +236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/app/equipment/': {
+      id: '/_auth/app/equipment/'
+      path: '/equipment'
+      fullPath: '/app/equipment/'
+      preLoaderRoute: typeof AuthAppEquipmentIndexRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
     '/_auth/app/portfolio/': {
       id: '/_auth/app/portfolio/'
       path: '/portfolio'
@@ -233,21 +264,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAppProfileCreatorRouteImport
       parentRoute: typeof AuthAppRouteRoute
     }
+    '/_auth/app/services/': {
+      id: '/_auth/app/services/'
+      path: '/services'
+      fullPath: '/app/services/'
+      preLoaderRoute: typeof AuthAppServicesIndexRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
   }
 }
 
 interface AuthAppRouteRouteChildren {
   AuthAppIndexRoute: typeof AuthAppIndexRoute
   AuthAppProfileCreatorRoute: typeof AuthAppProfileCreatorRoute
+  AuthAppEquipmentIndexRoute: typeof AuthAppEquipmentIndexRoute
   AuthAppPortfolioIndexRoute: typeof AuthAppPortfolioIndexRoute
   AuthAppProfileIndexRoute: typeof AuthAppProfileIndexRoute
+  AuthAppServicesIndexRoute: typeof AuthAppServicesIndexRoute
 }
 
 const AuthAppRouteRouteChildren: AuthAppRouteRouteChildren = {
   AuthAppIndexRoute: AuthAppIndexRoute,
   AuthAppProfileCreatorRoute: AuthAppProfileCreatorRoute,
+  AuthAppEquipmentIndexRoute: AuthAppEquipmentIndexRoute,
   AuthAppPortfolioIndexRoute: AuthAppPortfolioIndexRoute,
   AuthAppProfileIndexRoute: AuthAppProfileIndexRoute,
+  AuthAppServicesIndexRoute: AuthAppServicesIndexRoute,
 }
 
 const AuthAppRouteRouteWithChildren = AuthAppRouteRoute._addFileChildren(
