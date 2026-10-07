@@ -15,6 +15,65 @@ pnpm create cove
 - [Better Auth](https://better-auth.com/)
 - [Vite Plus](https://viteplus.dev/) + [Nitro](https://nitro.build/)
 
+## Sho-vee project guide
+
+### Demo login
+
+A demo account exists in the local dev database (created via the real signup API):
+
+- Email: `demo@sho-vee.dev`
+- Password: `Demo1234!`
+
+Log in at `/login`, then visit `/app`, `/app/profile`, `/app/profile/creator`, `/app/portfolio`.
+
+### Where things live
+
+| Area               | Location                                                                                                                                                  |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Route pages        | `src/routes/` (`_auth/*` = signed-in, `_guest/*` = login/signup, public top-level routes)                                                                 |
+| DB tables          | `src/lib/db/schema/*.schema.ts`, one file per domain (`creator`, `portfolio`, `service`, `equipment`, `booking`, `gig`, `review`, `post`, `notification`) |
+| Shared union types | `src/lib/db/schema/types.ts`                                                                                                                              |
+| Table relations    | `src/lib/db/schema/relations.ts` (Drizzle relations v2 `defineRelations`)                                                                                 |
+| Better Auth schema | `src/lib/db/schema/auth.schema.ts` (generated — do not hand-edit)                                                                                         |
+| Server functions   | `src/lib/<domain>/functions.ts` (auth via `src/lib/auth/middleware.ts`)                                                                                   |
+| Query options      | `src/lib/<domain>/queries.ts`                                                                                                                             |
+| Auth config        | `src/lib/auth/auth.ts`                                                                                                                                    |
+| UI components      | `src/components/`, primitives in `src/components/ui/`                                                                                                     |
+| Migrations         | `drizzle/` (generated, do not hand-edit)                                                                                                                  |
+| E2E tests          | `e2e/*.spec.ts`; unit tests colocated as `*.test.ts`                                                                                                      |
+
+### How to modify the database
+
+1. Edit/add a table in `src/lib/db/schema/*.schema.ts`. Use `text().$type<UnionType>()` for enum-like fields (no `pgEnum`); define the union in `types.ts`. Use FK `references(...)` with `onDelete: "cascade"` where appropriate, and add indexes for `user_id`/`creator_id`/`category`/`status`/`created_at`.
+2. Re-export new files from `src/lib/db/schema/index.ts`.
+3. Add/extend relations in `src/lib/db/schema/relations.ts` (skip the `user` key — that lives in `authRelations`).
+4. Generate and apply the migration:
+
+   ```sh
+   vpr db generate
+   vpr db migrate
+   ```
+
+5. Validate: `vpr lint` (type-aware + typecheck), then `vpr test`.
+
+If you change the Better Auth config, regenerate its schema instead: `vpr auth:generate`.
+
+### How to add a feature
+
+1. Add tables/types (above) if needed.
+2. Add server functions in `src/lib/<domain>/functions.ts` — always `.middleware([freshAuthMiddleware])` for mutations / `authMiddleware` for reads when a user is required, validate input with zod (`.validator(...)`), and enforce ownership by comparing `context.user.id` to the row's owner.
+3. Add query options in `src/lib/<domain>/queries.ts` and a route under `src/routes/` (`_auth/app/*` for signed-in pages). Route tree regenerates on the next dev/build run.
+4. `vpr lint`, then the narrowest relevant test (`vpr test`, or `vpr test:e2e` for journeys).
+
+### How to check in the web
+
+```sh
+docker compose up -d db   # start local PostgreSQL
+vpr dev                   # http://localhost:3000
+```
+
+Useful checks: `vpr lint` (lint + types), `vpr check` (format+lint+types), `vpr test` (Vitest), `vpr test:e2e` (Playwright, builds prod itself), `vpr build` (production build). Sample flows right now: signup/login → `/app/profile/creator` (create your creator profile) → `/app/portfolio` (add work) → revisit to see listing.
+
 > [!TIP]
 > This template is also available as a monorepo, powered by Vite+ and pnpm workspaces. See [mugnavo/cove-monorepo](https://github.com/mugnavo/cove-monorepo).
 

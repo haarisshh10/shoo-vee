@@ -17,6 +17,9 @@ import { Route as GuestLoginRouteImport } from './routes/_guest/login'
 import { Route as GuestSignupRouteImport } from './routes/_guest/signup'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthAppPortfolioIndexRouteImport } from './routes/_auth/app/portfolio/index'
+import { Route as AuthAppProfileIndexRouteImport } from './routes/_auth/app/profile/index'
+import { Route as AuthAppProfileCreatorRouteImport } from './routes/_auth/app/profile/creator'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -56,6 +59,21 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthAppPortfolioIndexRoute = AuthAppPortfolioIndexRouteImport.update({
+  id: '/portfolio/',
+  path: '/portfolio/',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
+const AuthAppProfileIndexRoute = AuthAppProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
+const AuthAppProfileCreatorRoute = AuthAppProfileCreatorRouteImport.update({
+  id: '/profile/creator',
+  path: '/profile/creator',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -64,6 +82,9 @@ export interface FileRoutesByFullPath {
   '/signup': typeof GuestSignupRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
+  '/app/profile/creator': typeof AuthAppProfileCreatorRoute
+  '/app/portfolio/': typeof AuthAppPortfolioIndexRoute
+  '/app/profile/': typeof AuthAppProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -71,6 +92,9 @@ export interface FileRoutesByTo {
   '/signup': typeof GuestSignupRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
+  '/app/profile/creator': typeof AuthAppProfileCreatorRoute
+  '/app/portfolio': typeof AuthAppPortfolioIndexRoute
+  '/app/profile': typeof AuthAppProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -82,12 +106,32 @@ export interface FileRoutesById {
   '/_guest/signup': typeof GuestSignupRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
+  '/_auth/app/profile/creator': typeof AuthAppProfileCreatorRoute
+  '/_auth/app/portfolio/': typeof AuthAppPortfolioIndexRoute
+  '/_auth/app/profile/': typeof AuthAppProfileIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/login' | '/signup' | '/api/auth/$' | '/app/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/login'
+    | '/signup'
+    | '/api/auth/$'
+    | '/app/'
+    | '/app/profile/creator'
+    | '/app/portfolio/'
+    | '/app/profile/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/signup' | '/api/auth/$' | '/app'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/api/auth/$'
+    | '/app'
+    | '/app/profile/creator'
+    | '/app/portfolio'
+    | '/app/profile'
   id:
     | '__root__'
     | '/'
@@ -98,6 +142,9 @@ export interface FileRouteTypes {
     | '/_guest/signup'
     | '/api/auth/$'
     | '/_auth/app/'
+    | '/_auth/app/profile/creator'
+    | '/_auth/app/portfolio/'
+    | '/_auth/app/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,15 +212,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/app/portfolio/': {
+      id: '/_auth/app/portfolio/'
+      path: '/portfolio'
+      fullPath: '/app/portfolio/'
+      preLoaderRoute: typeof AuthAppPortfolioIndexRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
+    '/_auth/app/profile/': {
+      id: '/_auth/app/profile/'
+      path: '/profile'
+      fullPath: '/app/profile/'
+      preLoaderRoute: typeof AuthAppProfileIndexRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
+    '/_auth/app/profile/creator': {
+      id: '/_auth/app/profile/creator'
+      path: '/profile/creator'
+      fullPath: '/app/profile/creator'
+      preLoaderRoute: typeof AuthAppProfileCreatorRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
   }
 }
 
 interface AuthAppRouteRouteChildren {
   AuthAppIndexRoute: typeof AuthAppIndexRoute
+  AuthAppProfileCreatorRoute: typeof AuthAppProfileCreatorRoute
+  AuthAppPortfolioIndexRoute: typeof AuthAppPortfolioIndexRoute
+  AuthAppProfileIndexRoute: typeof AuthAppProfileIndexRoute
 }
 
 const AuthAppRouteRouteChildren: AuthAppRouteRouteChildren = {
   AuthAppIndexRoute: AuthAppIndexRoute,
+  AuthAppProfileCreatorRoute: AuthAppProfileCreatorRoute,
+  AuthAppPortfolioIndexRoute: AuthAppPortfolioIndexRoute,
+  AuthAppProfileIndexRoute: AuthAppProfileIndexRoute,
 }
 
 const AuthAppRouteRouteWithChildren = AuthAppRouteRoute._addFileChildren(
