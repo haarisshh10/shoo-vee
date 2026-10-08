@@ -1,4 +1,5 @@
-import { index, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { index, pgTable, primaryKey, text, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { creatorProfile } from "./creator.schema";
 import type { EquipmentCategory } from "./types";
@@ -17,6 +18,13 @@ export const equipment = pgTable(
   (table) => [
     index("equipment_category_idx").on(table.category),
     index("equipment_name_idx").on(table.name),
+    // The catalogue is shared, so the same gear typed by two creators must resolve to one row.
+    // brand/model are nullable, hence coalesce — NULLs would otherwise never compare equal.
+    uniqueIndex("equipment_identity_idx").on(
+      sql`lower(${table.name})`,
+      sql`coalesce(lower(${table.brand}), '')`,
+      sql`coalesce(lower(${table.model}), '')`,
+    ),
   ],
 );
 

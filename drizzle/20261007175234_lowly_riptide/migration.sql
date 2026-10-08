@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "equipment_identity_idx" ON "equipment" (lower("name"),coalesce(lower("brand"), ''),coalesce(lower("model"), ''));

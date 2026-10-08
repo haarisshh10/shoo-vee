@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, ilike } from "drizzle-orm";
+import { and, desc, eq, ilike, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
@@ -79,31 +79,7 @@ export const $addEquipment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const profile = await requireProfile(context.user.id);
 
-    const [found] = await db
-      .select()
-      .from(equipment)
-      .where(
-        and(
-          eq(equipment.name, data.name),
-          data.brand ? eq(equipment.brand, data.brand) : undefined,
-          data.model ? eq(equipment.model, data.model) : undefined,
-        ),
-      )
-      .limit(1);
-
-    const record =
-      found ??
-      (
-        await db
-          .insert(equipment)
-          .values({
-            name: data.name,
-            brand: data.brand ?? null,
-            model: data.model ?? null,
-            category: data.category,
-          })
-          .returning()
-      )[0];
+    const record = await findOrCreateEquipment(data);
 
     await db
       .insert(creatorEquipment)
@@ -112,6 +88,45 @@ export const $addEquipment = createServerFn({ method: "POST" })
 
     return record;
   });
+
+/** Matches the `equipment_identity_idx` expression index so lookups and inserts agree. */
+function equipmentIdentity(name: string, brand?: string, model?: string) {
+  return and(
+    sql`lower(${equipment.name}) = lower(${name})`,
+    sql`coalesce(lower(${equipment.brand}), '') = ${brand?.toLowerCase() ?? ""}`,
+    sql`coalesce(lower(${equipment.model}), '') = ${model?.toLowerCase() ?? ""}`,
+  );
+}
+
+async function findOrCreateEquipment(data: EquipmentInput) {
+  const [found] = await db
+    .select()
+    .from(equipment)
+    .where(equipmentIdentity(data.name, data.brand, data.model))
+    .limit(1);
+  if (found) return found;
+
+  const [inserted] = await db
+    .insert(equipment)
+    .values({
+      name: data.name,
+      brand: data.brand ?? null,
+      model: data.model ?? null,
+      category: data.category,
+    })
+    // Two creators adding the same gear can race past the lookup above; let the index arbitrate.
+    .onConflictDoNothing()
+    .returning();
+  if (inserted) return inserted;
+
+  const [concurrent] = await db
+    .select()
+    .from(equipment)
+    .where(equipmentIdentity(data.name, data.brand, data.model))
+    .limit(1);
+  if (!concurrent) throw new Error("Could not save this equipment.");
+  return concurrent;
+}
 
 export const $removeEquipment = createServerFn({ method: "POST" })
   .middleware([freshAuthMiddleware])
