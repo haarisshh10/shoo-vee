@@ -71,8 +71,12 @@ test("creator activation unlocks Studio on the same account", async ({ page }) =
 
   await page.getByLabel("Display name").fill("Nikhil Rao");
   await page.getByLabel("Location").fill("Bengaluru");
-  await page.getByRole("checkbox", { name: "Videographer" }).check();
-  await page.getByRole("button", { name: /Save/ }).click();
+  // The chip is a real checkbox under a styled label, so it is visually covered by its own
+  // label. Click the way a user does and assert the state rather than forcing the input.
+  const videographer = page.getByRole("checkbox", { name: "Videographer" });
+  await page.getByText("Videographer", { exact: true }).click();
+  await expect(videographer).toBeChecked();
+  await page.getByRole("button", { name: /Publish creator profile|Save changes/ }).click();
 
   await expect(page.getByText("Creator profile saved.")).toBeVisible();
 
