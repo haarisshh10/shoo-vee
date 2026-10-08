@@ -3,6 +3,11 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
+import {
+  describeTransitionFailure,
+  resolveBookingTransition,
+  type BookingRole,
+} from "#/lib/bookings/transitions.ts";
 import { db } from "#/lib/db/index.ts";
 import { booking, creatorProfile, service, user } from "#/lib/db/schema/index.ts";
 import { notify } from "#/lib/notifications/functions.ts";
@@ -116,56 +121,58 @@ export const $transitionBooking = createServerFn({ method: "POST" })
     if (!existing) throw new Error("Booking not found.");
 
     const profile = await getMyProfile(context.user.id);
-    const isCreator = profile && existing.creatorId === profile.id;
+    const isCreator = !!profile && existing.creatorId === profile.id;
     const isCustomer = existing.customerId === context.user.id;
+    if (!isCreator && !isCustomer) throw new Error("Not allowed to change this booking.");
 
-    const allowed: Record<string, { byCreator: boolean; byCustomer: boolean; from: string[] }> = {
-      accept: { byCreator: true, byCustomer: false, from: ["pending"] },
-      reject: { byCreator: true, byCustomer: false, from: ["pending"] },
-      cancel: { byCreator: false, byCustomer: true, from: ["pending", "accepted"] },
-      complete: { byCreator: true, byCustomer: false, from: ["accepted"] },
-    };
-    const rule = allowed[data.action];
+    const role = isCreator ? "creator" : "customer";
+    const next = resolveBookingTransition(data.action, role, existing.status);
+    if (!next) throw new Error(describeTransitionFailure(data.action, role, existing.status));
 
-    if ((rule.byCreator && isCreator) || (rule.byCustomer && isCustomer)) {
-      if (!rule.from.includes(existing.status)) {
-        throw new Error(`Cannot ${data.action} a booking that is ${existing.status}.`);
-      }
-      const next =
-        data.action === "accept"
-          ? "accepted"
-          : data.action === "reject"
-            ? "rejected"
-            : data.action === "cancel"
-              ? "cancelled"
-              : "completed";
-      const [updated] = await db
-        .update(booking)
-        .set({ status: next })
-        .where(eq(booking.id, existing.id))
-        .returning();
-      if (data.action === "cancel") {
-        const [creatorProfileRow] = await db
-          .select()
-          .from(creatorProfile)
-          .where(eq(creatorProfile.id, existing.creatorId))
-          .limit(1);
-        if (creatorProfileRow) {
-          await notify(creatorProfileRow.userId, {
-            type: "booking",
-            title: "Booking cancelled",
-            body: "A customer cancelled their booking request.",
-          });
-        }
-      } else {
-        await notify(existing.customerId, {
-          type: "booking",
-          title: `Booking ${next}`,
-          body: `Your booking request was ${next}.`,
-        });
-      }
-      return updated;
-    }
+    const [updated] = await db
+      .update(booking)
+      .set({ status: next })
+      .where(eq(booking.id, existing.id))
+      .returning();
 
-    throw new Error("Not allowed to change this booking.");
+    await notifyCounterparty({ data, role, next, existing });
+    return updated;
   });
+
+async function notifyCounterparty({
+  data,
+  role,
+  next,
+  existing,
+}: {
+  data: { action: "accept" | "reject" | "cancel" | "complete" };
+  role: BookingRole;
+  next: string;
+  existing: typeof booking.$inferSelect;
+}) {
+  const [creator] = await db
+    .select({ userId: creatorProfile.userId })
+    .from(creatorProfile)
+    .where(eq(creatorProfile.id, existing.creatorId))
+    .limit(1);
+  if (!creator) return;
+
+  // Whoever did not press the button is the one who needs to know.
+  const recipientId = role === "creator" ? existing.customerId : creator.userId;
+  const byline = role === "creator" ? "The creator" : "The customer";
+
+  if (data.action === "cancel") {
+    await notify(recipientId, {
+      type: "booking",
+      title: "Booking cancelled",
+      body: `${byline} cancelled this booking.`,
+    });
+    return;
+  }
+
+  await notify(recipientId, {
+    type: "booking",
+    title: `Booking ${next}`,
+    body: `Your booking request is now ${next}.`,
+  });
+}

@@ -150,13 +150,23 @@ function BookingsPage() {
                     </>
                   )}
                   {b.status === "accepted" && (
-                    <Button
-                      size="sm"
-                      disabled={isUpdating}
-                      onClick={() => transition({ bookingId: b.id, action: "complete" })}
-                    >
-                      Mark completed
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        disabled={isUpdating}
+                        onClick={() => transition({ bookingId: b.id, action: "complete" })}
+                      >
+                        Mark completed
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={isUpdating}
+                        onClick={() => transition({ bookingId: b.id, action: "cancel" })}
+                      >
+                        Cancel booking
+                      </Button>
+                    </>
                   )}
                 </div>
               </li>
