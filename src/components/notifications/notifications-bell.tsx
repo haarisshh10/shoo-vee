@@ -5,6 +5,7 @@ import { Button } from "#/components/ui/button.tsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -36,14 +37,16 @@ export function NotificationsBell() {
         {unread ? <span className="absolute top-1 right-1 size-2 rounded-full bg-red-500" /> : null}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel className="flex items-center justify-between">
-          Notifications
-          {unread ? (
-            <Button size="sm" variant="ghost" onClick={() => markAll()}>
-              Mark all read
-            </Button>
-          ) : null}
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex items-center justify-between">
+            Notifications
+            {unread ? (
+              <Button size="sm" variant="ghost" onClick={() => markAll()}>
+                Mark all read
+              </Button>
+            ) : null}
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {items && items.length > 0 ? (
           items.slice(0, 8).map((n) => (
