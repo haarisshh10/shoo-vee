@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { and, arrayContains, arrayOverlaps, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -28,6 +28,107 @@ export const searchSchema = z.object({
 });
 
 export type CreatorSearch = z.infer<typeof searchSchema>;
+
+/**
+ * Curated rows for the landing page and the signed-in home: the same shape as a discovery result,
+ * so one card component covers every surface.
+ */
+export type CreatorCard = Awaited<ReturnType<typeof buildCreatorCards>>[number];
+
+const buildCreatorCards = createServerOnlyFn(async (limit: number) => {
+  const creators = await db
+    .select()
+    .from(creatorProfile)
+    .orderBy(desc(creatorProfile.createdAt))
+    .limit(limit * 3);
+
+  if (creators.length === 0) return [];
+
+  const ids = creators.map((c) => c.id);
+
+  const ratings = await db
+    .select({
+      creatorId: review.creatorId,
+      avg: sql<number>`avg(${review.rating})::float`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(review)
+    .where(inArray(review.creatorId, ids))
+    .groupBy(review.creatorId);
+
+  // Latest images per creator double as the card preview and the portfolio strip.
+  const previews = await db
+    .select({
+      creatorId: portfolioItem.creatorId,
+      mediaUrl: portfolioItem.mediaUrl,
+      title: portfolioItem.title,
+      createdAt: portfolioItem.createdAt,
+    })
+    .from(portfolioItem)
+    .where(and(inArray(portfolioItem.creatorId, ids), eq(portfolioItem.mediaType, "image")))
+    .orderBy(desc(portfolioItem.createdAt));
+
+  const ratingMap = new Map(ratings.map((r) => [r.creatorId, r]));
+  const previewsByCreator = new Map<string, { mediaUrl: string; title: string }[]>();
+  for (const p of previews) {
+    const list = previewsByCreator.get(p.creatorId);
+    if (list) list.push({ mediaUrl: p.mediaUrl, title: p.title });
+    else previewsByCreator.set(p.creatorId, [{ mediaUrl: p.mediaUrl, title: p.title }]);
+  }
+
+  return creators.map((c) => {
+    const portfolio = previewsByCreator.get(c.id) ?? [];
+    return {
+      ...c,
+      avgRating: ratingMap.get(c.id)?.avg ?? null,
+      reviewCount: ratingMap.get(c.id)?.count ?? 0,
+      previewImage: portfolio[0]?.mediaUrl ?? null,
+      previewImages: portfolio.slice(0, 3).map((p) => p.mediaUrl),
+    };
+  });
+});
+
+/**
+ * Featured creators for the landing page and signed-in home. Verified work leads, then rating, so
+ * the first impression is the strongest work on the platform.
+ */
+export const $getFeaturedCreators = createServerFn({ method: "GET" })
+  .validator((data) =>
+    z.object({ limit: z.number().int().min(1).max(24).default(8) }).parse(data ?? {}),
+  )
+  .handler(async ({ data }) => {
+    const cards = await buildCreatorCards(data.limit);
+    cards.sort((a, b) => {
+      const score = (c: (typeof cards)[number]) =>
+        (c.verificationStatus === "verified" ? 1000 : 0) + (c.avgRating ?? 0) * 100;
+      return score(b) - score(a);
+    });
+    return cards.slice(0, data.limit);
+  });
+
+export type PopularCategory = Awaited<ReturnType<typeof countCreatorTypes>>[number];
+
+const countCreatorTypes = createServerOnlyFn(async () => {
+  const rows = await db
+    .select({
+      creatorType: sql<string>`unnest(${creatorProfile.creatorTypes})`,
+      creators: sql<number>`count(*)::int`,
+    })
+    .from(creatorProfile)
+    .groupBy(sql`unnest(${creatorProfile.creatorTypes})`);
+
+  return rows
+    .map((r) => ({
+      slug: r.creatorType,
+      label: r.creatorType.replaceAll("_", " "),
+      creators: r.creators,
+    }))
+    .sort((a, b) => b.creators - a.creators);
+});
+
+export const $getPopularCategories = createServerFn({ method: "GET" }).handler(
+  async () => await countCreatorTypes(),
+);
 
 export const $searchCreators = createServerFn({ method: "GET" })
   .validator((data) => searchSchema.parse(data))
