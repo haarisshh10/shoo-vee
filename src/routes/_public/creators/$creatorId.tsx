@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { BookingForm } from "#/components/bookings/booking-form.tsx";
 import { ReportButton } from "#/components/reports/report-button.tsx";
+import { AVAILABILITY_COPY } from "#/lib/bookings/transitions.ts";
 import { $getCreatorById } from "#/lib/creators/functions.ts";
 
 export const Route = createFileRoute("/_public/creators/$creatorId")({
@@ -19,6 +21,8 @@ const creatorQueryOptions = (creatorId: string) =>
 function CreatorPage() {
   const { creatorId } = Route.useParams();
   const { data, isPending, isError } = useQuery(creatorQueryOptions(creatorId));
+  // Set when a service is chosen from the list, so the booking form opens on it.
+  const [selectedServiceId, setSelectedServiceId] = useState<string | undefined>();
 
   if (isPending) return <p className="p-10 text-sm text-muted-foreground">Loading...</p>;
   if (isError || !data)
@@ -29,6 +33,7 @@ function CreatorPage() {
     reviews.length > 0
       ? reviews.reduce((sum, r) => sum + r.review.rating, 0) / reviews.length
       : null;
+  const availability = AVAILABILITY_COPY[profile.availabilityStatus];
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-10">
@@ -36,7 +41,7 @@ function CreatorPage() {
         {profile.coverImageUrl && (
           <img src={profile.coverImageUrl} alt="" className="h-48 w-full rounded-xl object-cover" />
         )}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           {profile.profileImageUrl ? (
             <img
               src={profile.profileImageUrl}
@@ -58,9 +63,16 @@ function CreatorPage() {
                 ` · From ${profile.currency} ${profile.startingPrice.toLocaleString("en-IN")}`}
             </p>
           </div>
+          <AvailabilityBadge status={profile.availabilityStatus} className="ms-auto" />
+          <ReportButton targetType="creator_profile" targetId={profile.id} />
         </div>
         {profile.bio && <p className="text-sm">{profile.bio}</p>}
-        <ReportButton targetType="creator_profile" targetId={profile.id} />
+        {profile.availabilityStatus !== "available" ? (
+          <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+            {availability.hint}. Booking requests are closed while{" "}
+            {availability.label.toLowerCase()}.
+          </p>
+        ) : null}
       </header>
 
       <section>
@@ -97,16 +109,31 @@ function CreatorPage() {
       <section>
         <h2 className="mb-3 text-lg font-semibold">Services</h2>
         {services.length > 0 ? (
-          <ul className="flex flex-col gap-2">
+          <ul className="grid gap-3 sm:grid-cols-2">
             {services.map((s) => (
-              <li key={s.id} className="flex items-baseline justify-between rounded-md border p-3">
-                <div>
+              <li key={s.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedServiceId(s.id);
+                    document
+                      .getElementById("book")
+                      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }}
+                  className="flex h-full w-full flex-col gap-2 rounded-xl border p-4 text-left transition-colors hover:border-foreground/30"
+                >
                   <p className="text-sm font-medium">{s.title}</p>
-                  <p className="text-xs text-muted-foreground">{s.description}</p>
-                </div>
-                <p className="text-sm font-medium">
-                  {s.currency} {s.price.toLocaleString("en-IN")} / {s.pricingUnit}
-                </p>
+                  {s.description ? (
+                    <p className="line-clamp-2 text-xs text-muted-foreground">{s.description}</p>
+                  ) : null}
+                  <p className="mt-auto text-sm font-semibold">
+                    {s.currency} {s.price.toLocaleString("en-IN")}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {" "}
+                      / {s.pricingUnit}
+                    </span>
+                  </p>
+                </button>
               </li>
             ))}
           </ul>
@@ -131,9 +158,18 @@ function CreatorPage() {
         )}
       </section>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Book / Contact</h2>
-        <BookingForm creatorId={profile.id} services={services} />
+      <section id="book">
+        <h2 className="mb-3 text-lg font-semibold">Request a booking</h2>
+        <BookingForm
+          creatorId={profile.id}
+          services={services}
+          initialServiceId={selectedServiceId}
+          disabledReason={
+            profile.availabilityStatus === "available"
+              ? undefined
+              : `${profile.displayName} is not taking new bookings right now. Come back later or find another creator in Discover.`
+          }
+        />
       </section>
 
       <section>
@@ -166,5 +202,36 @@ function CreatorPage() {
         )}
       </section>
     </div>
+  );
+}
+
+/** Public availability, so a customer knows before they fill in a booking form. */
+function AvailabilityBadge({
+  status,
+  className,
+}: {
+  status: keyof typeof AVAILABILITY_COPY;
+  className?: string;
+}) {
+  const copy = AVAILABILITY_COPY[status];
+  const tone =
+    status === "available"
+      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+      : status === "busy"
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+        : "border-border bg-muted text-muted-foreground";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${tone} ${className ?? ""}`}
+    >
+      <span
+        className="size-1.5 rounded-full bg-current"
+        // The colour already encodes the state; this is for anyone who cannot see it.
+        role="img"
+        aria-label={copy.hint}
+      />
+      {copy.label}
+    </span>
   );
 }

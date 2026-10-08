@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { StudioSelect } from "#/components/studio/studio-fields.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
@@ -8,12 +9,28 @@ import { toast } from "#/components/ui/toast.tsx";
 import { useAuth } from "#/lib/auth/hooks.ts";
 import { $createBooking, type CreateBookingInput } from "#/lib/bookings/functions.ts";
 
-interface BookingFormProps {
-  creatorId: string;
-  services: { id: string; title: string; price: number; currency: string }[];
+export interface BookableService {
+  id: string;
+  title: string;
+  price: number;
+  currency: string;
+  pricingUnit: string;
 }
 
-export function BookingForm({ creatorId, services }: BookingFormProps) {
+interface BookingFormProps {
+  creatorId: string;
+  services: BookableService[];
+  /** Preselected service, when the customer clicked one on the services list. */
+  initialServiceId?: string;
+  disabledReason?: string;
+}
+
+export function BookingForm({
+  creatorId,
+  services,
+  initialServiceId,
+  disabledReason,
+}: BookingFormProps) {
   const { user, isPending: isAuthPending } = useAuth();
   const [sent, setSent] = useState(false);
 
@@ -38,6 +55,13 @@ export function BookingForm({ creatorId, services }: BookingFormProps) {
           Log in
         </a>{" "}
         to send a booking request.
+      </p>
+    );
+  }
+  if (disabledReason) {
+    return (
+      <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+        {disabledReason}
       </p>
     );
   }
@@ -68,23 +92,21 @@ export function BookingForm({ creatorId, services }: BookingFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-busy={isPending}>
-      {services.length > 0 && (
-        <div className="grid gap-2">
-          <Label htmlFor="serviceId">Service</Label>
-          <select
-            id="serviceId"
-            name="serviceId"
-            className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-          >
-            <option value="">Custom request</option>
-            {services.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.title} — {s.currency} {s.price}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      {services.length > 0 ? (
+        <StudioSelect
+          id="serviceId"
+          name="serviceId"
+          label="Service"
+          defaultValue={initialServiceId ?? ""}
+          options={[
+            ["", "Custom request"],
+            ...services.map((s): readonly [string, string] => [
+              s.id,
+              `${s.title} — ${s.currency} ${s.price.toLocaleString("en-IN")} / ${s.pricingUnit}`,
+            ]),
+          ]}
+        />
+      ) : null}
       <div className="grid gap-2">
         <Label htmlFor="eventDate">Event date</Label>
         <Input id="eventDate" name="eventDate" type="date" />
@@ -104,7 +126,7 @@ export function BookingForm({ creatorId, services }: BookingFormProps) {
           name="message"
           rows={4}
           maxLength={2000}
-          className="rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+          className="rounded-xl border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
         />
       </div>
       <Button type="submit" disabled={isPending}>

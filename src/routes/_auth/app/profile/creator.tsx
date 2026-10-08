@@ -11,6 +11,7 @@ import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
 import { toast } from "#/components/ui/toast.tsx";
+import { AVAILABILITY_COPY, type Availability } from "#/lib/bookings/transitions.ts";
 import { $upsertCreatorProfile, type CreatorProfileInput } from "#/lib/creators/functions.ts";
 import { myCreatorProfileQueryOptions } from "#/lib/creators/queries.ts";
 import { cn } from "#/lib/utils.ts";
@@ -29,12 +30,6 @@ const CREATOR_TYPES = [
   ["event_creator", "Event creator"],
   ["content_creator", "Content creator"],
   ["other", "Other"],
-] as const;
-
-const AVAILABILITY = [
-  ["available", "Available", "Taking new work"],
-  ["busy", "Busy", "Booked for now"],
-  ["unavailable", "Unavailable", "Not accepting work"],
 ] as const;
 
 const FIELD_CLASS = "h-9";
@@ -378,7 +373,7 @@ function CreatorProfilePage() {
               <fieldset className="grid gap-2">
                 <legend className="mb-2 text-sm font-medium">Availability</legend>
                 <div className="flex flex-wrap gap-2">
-                  {AVAILABILITY.map(([value, label, hint]) => (
+                  {(Object.keys(AVAILABILITY_COPY) as Availability[]).map((value) => (
                     <Chip
                       key={value}
                       type="radio"
@@ -386,8 +381,10 @@ function CreatorProfilePage() {
                       value={value}
                       defaultChecked={(profile?.availabilityStatus ?? "available") === value}
                     >
-                      {label}
-                      <span className="ms-1.5 text-xs opacity-70">{hint}</span>
+                      {AVAILABILITY_COPY[value].label}
+                      <span className="ms-1.5 text-xs opacity-70">
+                        {AVAILABILITY_COPY[value].hint}
+                      </span>
                     </Chip>
                   ))}
                 </div>
