@@ -1,7 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { LoaderCircleIcon } from "lucide-react";
-import { ENV } from "varlock/env";
 
 import { SocialSignInButtons } from "#/components/sign-in-social-buttons.tsx";
 import { Button } from "#/components/ui/button.tsx";
@@ -9,6 +8,7 @@ import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
 import { toast } from "#/components/ui/toast.tsx";
 import { authClient } from "#/lib/auth/auth-client.ts";
+import { isLocalOrigin } from "#/lib/env.ts";
 
 export const Route = createFileRoute("/_guest/login")({
   component: LoginForm,
@@ -112,7 +112,7 @@ function LoginForm() {
  * Demo credentials for the live deployment of the Cove Stack template on which this project is based.
  */
 function DeleteMeDemoAccount() {
-  if (!ENV.VITE_BASE_URL.includes("localhost")) return null;
+  if (!isLocalOrigin()) return null;
 
   return (
     <div className="rounded-md border border-dashed bg-muted/50 p-3 text-sm">
