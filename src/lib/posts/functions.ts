@@ -5,6 +5,7 @@ import { z } from "zod";
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import { db } from "#/lib/db/index.ts";
 import { creatorProfile, post } from "#/lib/db/schema/index.ts";
+import { resolveReportsForRemovedTarget } from "#/lib/reports/functions.ts";
 
 const postSchema = z.object({
   caption: z.string().trim().max(2000).optional(),
@@ -74,5 +75,6 @@ export const $deletePost = createServerFn({ method: "POST" })
       .where(and(eq(post.id, data.id), eq(post.creatorId, profile.id)))
       .returning();
     if (!deleted) throw new Error("Post not found.");
+    await resolveReportsForRemovedTarget("post", deleted.id);
     return deleted;
   });
