@@ -213,6 +213,21 @@ const GIGS = [
   { title: "Need drone FPV pilot", role: "FPV pilot", location: "Mumbai", pay: 8000 },
 ];
 
+const SHOT_CAPTIONS = [
+  "Golden hour at the fort",
+  "Studio portrait, single softbox",
+  "Street session before the rain",
+  "Rooftop skyline at blue hour",
+  "Backstage between takes",
+  "Morning light in the old quarter",
+  "Product stills on seamless",
+  "Long exposure from the bridge",
+  "Getting ready, natural light",
+  "Drone pass over the coastline",
+  "Detail shots on the edit bay",
+  "Candid moments on the dance floor",
+] as const;
+
 function picsum(seed: string) {
   return `https://picsum.photos/seed/${seed}/800/600`;
 }
@@ -286,45 +301,49 @@ export async function seedDevelopmentData() {
   }
 
   for (const [i, p] of profiles.entries()) {
-    for (let j = 0; j < 3; j++) {
-      const k = (i * 3 + j) % equipmentIds.length;
+    const creator = CREATORS[i];
+    for (let j = 0; j < 4; j++) {
+      const k = (i * 4 + j) % equipmentIds.length;
       if (!equipmentIds[k]) continue;
       await db
         .insert(creatorEquipment)
         .values({ creatorId: p.id, equipmentId: equipmentIds[k] })
         .onConflictDoNothing();
     }
-    for (let j = 0; j < 3; j++) {
+    for (let j = 0; j < 4; j++) {
       const category = CATEGORIES[(i + j * 3) % CATEGORIES.length];
       await db.insert(portfolioItem).values({
         creatorId: p.id,
-        title: `${category} shot ${j + 1}`,
-        description: `${category} work by a Sho-vee creator.`,
+        title: `${creator.specialties[j % creator.specialties.length]} — ${category.replaceAll("_", " ")}`,
+        description: `${category.replaceAll("_", " ")} work shot in ${creator.location}.`,
         mediaUrl: picsum(`portfolio-${i}-${j}`),
         mediaType: "image",
         category,
-        tags: [category, "shovee"],
+        tags: [...creator.specialties.slice(0, 2), category],
       });
     }
     for (let j = 0; j < 2; j++) {
       await db.insert(service).values({
         creatorId: p.id,
-        title: `${CATEGORIES[(i + j) % CATEGORIES.length]} coverage`,
+        title: `${creator.specialties[j % creator.specialties.length].replaceAll("_", " ")} coverage`,
         category: CATEGORIES[(i + j) % CATEGORIES.length],
-        description: "Full-day professional coverage.",
-        price: CREATORS[i].price * (j + 1),
+        description: `Full-day ${creator.specialties[j % creator.specialties.length]} coverage based in ${creator.location}.`,
+        price: creator.price * (j + 1),
         currency: "INR",
         pricingUnit: j === 0 ? "project" : "day",
       });
     }
-    await db.insert(post).values({
-      creatorId: p.id,
-      caption: `Latest work — ${CREATORS[i].specialties[0]}`,
-      mediaUrl: picsum(`post-${i}`),
-      mediaType: "image",
-      location: CREATORS[i].location,
-      tags: CREATORS[i].specialties,
-    });
+    // Several posts per creator so the shots feed and the landing collage have something to show.
+    for (let j = 0; j < 3; j++) {
+      await db.insert(post).values({
+        creatorId: p.id,
+        caption: SHOT_CAPTIONS[(i * 3 + j) % SHOT_CAPTIONS.length],
+        mediaUrl: picsum(`post-${i}-${j}`),
+        mediaType: "image",
+        location: creator.location,
+        tags: [...creator.specialties.slice(0, 2), "sho-vee"],
+      });
+    }
   }
 
   for (const [i, g] of GIGS.entries()) {
