@@ -1,8 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { LoaderCircleIcon, Trash2Icon } from "lucide-react";
+import { Trash2Icon } from "lucide-react";
 
-import { Button } from "#/components/ui/button.tsx";
+import { StudioChips, MediaField } from "#/components/studio/studio-fields.tsx";
+import {
+  StudioEmpty,
+  StudioPage,
+  StudioPanel,
+  StudioSubmit,
+} from "#/components/studio/studio-page.tsx";
+import { Badge } from "#/components/ui/badge.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
 import { toast } from "#/components/ui/toast.tsx";
@@ -18,18 +25,23 @@ export const Route = createFileRoute("/_auth/app/portfolio/")({
 });
 
 const CATEGORIES = [
-  "wedding",
-  "portrait",
-  "fashion",
-  "automotive",
-  "product",
-  "event",
-  "travel",
-  "food",
-  "real_estate",
-  "commercial",
-  "social_media",
-  "other",
+  ["wedding", "Wedding"],
+  ["portrait", "Portrait"],
+  ["fashion", "Fashion"],
+  ["automotive", "Automotive"],
+  ["product", "Product"],
+  ["event", "Event"],
+  ["travel", "Travel"],
+  ["food", "Food"],
+  ["real_estate", "Real estate"],
+  ["commercial", "Commercial"],
+  ["social_media", "Social media"],
+  ["other", "Other"],
+] as const;
+
+const MEDIA_TYPES = [
+  ["image", "Image"],
+  ["video", "Video"],
 ] as const;
 
 function PortfolioPage() {
@@ -85,116 +97,138 @@ function PortfolioPage() {
     );
   };
 
+  const total = items?.length ?? 0;
+
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-xl font-semibold">Portfolio</h1>
-        <p className="text-sm text-muted-foreground">
-          Add your best work. Strong visuals help customers find you.
-        </p>
-      </div>
+    <StudioPage
+      title="Portfolio"
+      description="The work customers judge you on. It fills the preview strip on your profile card and the gallery on your public page."
+      count={total}
+      isPending={isPending}
+    >
+      <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-8">
+        <form
+          onSubmit={handleSubmit}
+          className="lg:sticky lg:top-24 lg:self-start"
+          aria-busy={isAdding}
+        >
+          <StudioPanel
+            title="Add a piece"
+            description="One strong image beats five average ones."
+            className="flex flex-col gap-4"
+          >
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                name="title"
+                required
+                maxLength={120}
+                className="h-9"
+                placeholder="Golden hour at the fort"
+              />
+            </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-busy={isAdding}>
-        <div className="grid gap-2">
-          <Label htmlFor="title">Title</Label>
-          <Input id="title" name="title" required maxLength={120} />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="description">Description</Label>
-          <textarea
-            id="description"
-            name="description"
-            rows={2}
-            maxLength={2000}
-            className="rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="mediaUrl">Media URL</Label>
-          <Input id="mediaUrl" name="mediaUrl" type="url" required />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="mediaType">Media type</Label>
-            <select
-              id="mediaType"
-              name="mediaType"
-              defaultValue="image"
-              className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-            >
-              <option value="image">Image</option>
-              <option value="video">Video</option>
-            </select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="category">Category</Label>
-            <select
-              id="category"
-              name="category"
-              defaultValue="other"
-              className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="tags">Tags (comma separated)</Label>
-          <Input id="tags" name="tags" placeholder="wedding, cinematic" />
-        </div>
-        <Button type="submit" disabled={isAdding}>
-          {isAdding && <LoaderCircleIcon className="animate-spin" aria-hidden="true" />}
-          {isAdding ? "Adding..." : "Add to portfolio"}
-        </Button>
-      </form>
+            <MediaField
+              id="mediaUrl"
+              name="mediaUrl"
+              label="Media URL"
+              mediaType="image"
+              hint="Paste a link to your image or video. Uploading from your camera roll is next."
+            />
 
-      {isPending ? (
-        <div className="flex justify-center p-6">
-          <LoaderCircleIcon className="animate-spin" aria-hidden="true" />
-        </div>
-      ) : items && items.length > 0 ? (
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {items.map((item) => (
-            <li key={item.id} className="flex flex-col gap-1">
-              {item.mediaType === "image" ? (
-                <img
-                  src={item.mediaUrl}
-                  alt={item.title}
-                  className="aspect-square w-full rounded-md object-cover"
-                />
-              ) : (
-                <video
-                  src={item.mediaUrl}
-                  className="aspect-square w-full rounded-md object-cover"
-                  muted
-                >
-                  <track kind="captions" label="No captions available" />
-                </video>
-              )}
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">{item.category}</p>
+            <div className="grid gap-4">
+              <StudioChips
+                legend="Media type"
+                name="mediaType"
+                options={MEDIA_TYPES}
+                type="radio"
+                defaultValue="image"
+              />
+              <StudioChips
+                legend="Category"
+                name="category"
+                options={CATEGORIES}
+                type="radio"
+                defaultValue="other"
+                hint="Drives the category filter in Discover."
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <textarea
+                id="description"
+                name="description"
+                rows={2}
+                maxLength={2000}
+                placeholder="What was the brief, and what made the shot work?"
+                className="rounded-xl border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="tags">Tags</Label>
+              <Input id="tags" name="tags" className="h-9" placeholder="wedding, cinematic" />
+              <p className="text-xs text-muted-foreground">Comma separated.</p>
+            </div>
+
+            <StudioSubmit isPending={isAdding} pendingLabel="Adding...">
+              Add to portfolio
+            </StudioSubmit>
+          </StudioPanel>
+        </form>
+
+        {total > 0 ? (
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {items?.map((item) => (
+              <li
+                key={item.id}
+                className="group relative overflow-hidden rounded-2xl border bg-card"
+              >
+                <div className="aspect-square overflow-hidden bg-muted">
+                  {item.mediaType === "image" ? (
+                    <img
+                      src={item.mediaUrl}
+                      alt={item.title}
+                      loading="lazy"
+                      className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <video src={item.mediaUrl} className="size-full object-cover" muted playsInline>
+                      <track kind="captions" label="No captions available" />
+                    </video>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.id)}
-                  className="text-muted-foreground hover:text-destructive"
-                  aria-label={`Delete ${item.title}`}
-                >
-                  <Trash2Icon className="size-4" />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground">No portfolio items yet.</p>
-      )}
-    </div>
+                <div className="flex flex-col gap-1 p-3">
+                  <p className="line-clamp-1 text-sm font-medium">{item.title}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge variant="secondary" className="rounded-full font-normal capitalize">
+                      {item.category.replaceAll("_", " ")}
+                    </Badge>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(item.id)}
+                      className="text-muted-foreground transition-colors hover:text-destructive"
+                      aria-label={`Delete ${item.title}`}
+                    >
+                      <Trash2Icon className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <StudioEmpty
+            title="Nothing in your portfolio yet"
+            hint="Three to five pieces is enough to start. You can always add more later."
+          >
+            Start with the shot you would put first on your own website. Add it on the left and it
+            appears on your profile card immediately.
+          </StudioEmpty>
+        )}
+      </div>
+    </StudioPage>
   );
 }

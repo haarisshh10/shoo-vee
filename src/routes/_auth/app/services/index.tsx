@@ -1,8 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { LoaderCircleIcon, Trash2Icon } from "lucide-react";
+import { IndianRupeeIcon, Trash2Icon } from "lucide-react";
 
-import { Button } from "#/components/ui/button.tsx";
+import { StudioChips } from "#/components/studio/studio-fields.tsx";
+import {
+  StudioEmpty,
+  StudioPage,
+  StudioPanel,
+  StudioSubmit,
+} from "#/components/studio/studio-page.tsx";
+import { Badge } from "#/components/ui/badge.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
 import { toast } from "#/components/ui/toast.tsx";
@@ -14,18 +21,25 @@ export const Route = createFileRoute("/_auth/app/services/")({
 });
 
 const CATEGORIES = [
-  "wedding",
-  "portrait",
-  "fashion",
-  "automotive",
-  "product",
-  "event",
-  "travel",
-  "food",
-  "real_estate",
-  "commercial",
-  "social_media",
-  "other",
+  ["wedding", "Wedding"],
+  ["portrait", "Portrait"],
+  ["fashion", "Fashion"],
+  ["automotive", "Automotive"],
+  ["product", "Product"],
+  ["event", "Event"],
+  ["travel", "Travel"],
+  ["food", "Food"],
+  ["real_estate", "Real estate"],
+  ["commercial", "Commercial"],
+  ["social_media", "Social media"],
+  ["other", "Other"],
+] as const;
+
+const PRICING_UNITS = [
+  ["hour", "Hour"],
+  ["day", "Day"],
+  ["project", "Project"],
+  ["package", "Package"],
 ] as const;
 
 function ServicesPage() {
@@ -77,111 +91,145 @@ function ServicesPage() {
     );
   };
 
+  const total = services?.length ?? 0;
+
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-xl font-semibold">Services</h1>
-        <p className="text-sm text-muted-foreground">
-          List what you offer and your starting rates.
-        </p>
-      </div>
+    <StudioPage
+      title="Services"
+      description="What you offer and what it costs. Customers book a specific service, not your profile in general."
+      count={total}
+      isPending={isPending}
+    >
+      <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-8">
+        <form
+          onSubmit={handleSubmit}
+          className="lg:sticky lg:top-24 lg:self-start"
+          aria-busy={isAdding}
+        >
+          <StudioPanel
+            title="Add a service"
+            description="Price it the way you would quote it on a call."
+            className="flex flex-col gap-4"
+          >
+            <div className="grid gap-2">
+              <Label htmlFor="title">Service title</Label>
+              <Input
+                id="title"
+                name="title"
+                required
+                maxLength={120}
+                className="h-9"
+                placeholder="Wedding coverage"
+              />
+            </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-busy={isAdding}>
-        <div className="grid gap-2">
-          <Label htmlFor="title">Service title</Label>
-          <Input
-            id="title"
-            name="title"
-            required
-            maxLength={120}
-            placeholder="Wedding Photography"
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="description">Description</Label>
-          <textarea
-            id="description"
-            name="description"
-            rows={3}
-            maxLength={2000}
-            className="rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="category">Category</Label>
-            <select
-              id="category"
-              name="category"
-              defaultValue="other"
-              className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="pricingUnit">Pricing unit</Label>
-            <select
-              id="pricingUnit"
-              name="pricingUnit"
-              defaultValue="project"
-              className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-            >
-              <option value="hour">Hour</option>
-              <option value="day">Day</option>
-              <option value="project">Project</option>
-              <option value="package">Package</option>
-            </select>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="price">Price</Label>
-            <Input id="price" name="price" type="number" min={0} required />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="currency">Currency</Label>
-            <Input id="currency" name="currency" maxLength={3} defaultValue="INR" />
-          </div>
-        </div>
-        <Button type="submit" disabled={isAdding}>
-          {isAdding && <LoaderCircleIcon className="animate-spin" aria-hidden="true" />}
-          {isAdding ? "Adding..." : "Add service"}
-        </Button>
-      </form>
+            <div className="grid gap-4">
+              <StudioChips
+                legend="Category"
+                name="category"
+                options={CATEGORIES}
+                type="radio"
+                defaultValue="other"
+              />
+              <StudioChips
+                legend="Priced per"
+                name="pricingUnit"
+                options={PRICING_UNITS}
+                type="radio"
+                defaultValue="project"
+              />
+            </div>
 
-      {isPending ? (
-        <div className="flex justify-center p-6">
-          <LoaderCircleIcon className="animate-spin" aria-hidden="true" />
-        </div>
-      ) : services && services.length > 0 ? (
-        <ul className="flex flex-col gap-3">
-          {services.map((s) => (
-            <li key={s.id} className="flex items-center justify-between rounded-md border p-3">
-              <div>
-                <p className="text-sm font-medium">{s.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {s.category.replaceAll("_", " ")} · {s.currency} {s.price} / {s.pricingUnit}
-                </p>
+            <div className="grid grid-cols-[1fr_5rem] gap-3">
+              <div className="grid gap-2">
+                <Label htmlFor="price">Price</Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  min={0}
+                  required
+                  className="h-9"
+                  placeholder="45000"
+                />
               </div>
-              <button
-                type="button"
-                onClick={() => removeService(s.id)}
-                className="text-muted-foreground hover:text-destructive"
-                aria-label={`Delete ${s.title}`}
-              >
-                <Trash2Icon className="size-4" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground">No services yet.</p>
-      )}
-    </div>
+              <div className="grid gap-2">
+                <Label htmlFor="currency">Currency</Label>
+                <Input
+                  id="currency"
+                  name="currency"
+                  maxLength={3}
+                  defaultValue="INR"
+                  className="h-9"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <textarea
+                id="description"
+                name="description"
+                rows={3}
+                maxLength={2000}
+                placeholder="What is included, how long it takes, and what you need from the client."
+                className="rounded-xl border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+              />
+            </div>
+
+            <StudioSubmit isPending={isAdding} pendingLabel="Adding...">
+              Add service
+            </StudioSubmit>
+          </StudioPanel>
+        </form>
+
+        {total > 0 ? (
+          <ul className="grid items-start gap-4 sm:grid-cols-2">
+            {services?.map((service) => (
+              <li key={service.id} className="flex flex-col gap-3 rounded-2xl border bg-card p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-base font-semibold tracking-tight">{service.title}</h3>
+                  <button
+                    type="button"
+                    onClick={() => removeService(service.id)}
+                    className="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
+                    aria-label={`Delete ${service.title}`}
+                  >
+                    <Trash2Icon className="size-4" />
+                  </button>
+                </div>
+
+                {service.description ? (
+                  <p className="line-clamp-2 text-sm text-muted-foreground">
+                    {service.description}
+                  </p>
+                ) : null}
+
+                <div className="mt-auto flex items-end justify-between gap-3 border-t pt-3">
+                  <p className="flex items-center gap-1 text-lg font-semibold tracking-tight">
+                    <IndianRupeeIcon className="size-4" aria-hidden="true" />
+                    {service.currency} {service.price.toLocaleString("en-IN")}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      / {service.pricingUnit}
+                    </span>
+                  </p>
+                  <Badge variant="secondary" className="rounded-full font-normal capitalize">
+                    {service.category.replaceAll("_", " ")}
+                  </Badge>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <StudioEmpty
+            title="No services listed yet"
+            hint="Two or three clear services beat one vague 'photography' listing."
+          >
+            Customers cannot request a booking without knowing what you charge. List the two things
+            you get booked for most, at your real rates.
+          </StudioEmpty>
+        )}
+      </div>
+    </StudioPage>
   );
 }

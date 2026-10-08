@@ -1,8 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { LoaderCircleIcon, Trash2Icon } from "lucide-react";
+import { Trash2Icon } from "lucide-react";
 
-import { Button } from "#/components/ui/button.tsx";
+import { StudioChips } from "#/components/studio/studio-fields.tsx";
+import {
+  StudioEmpty,
+  StudioPage,
+  StudioPanel,
+  StudioSubmit,
+} from "#/components/studio/studio-page.tsx";
+import { Badge } from "#/components/ui/badge.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
 import { toast } from "#/components/ui/toast.tsx";
@@ -14,15 +21,15 @@ export const Route = createFileRoute("/_auth/app/equipment/")({
 });
 
 const CATEGORIES = [
-  "camera",
-  "lens",
-  "lighting",
-  "audio",
-  "drone",
-  "gimbal",
-  "tripod",
-  "accessory",
-  "other",
+  ["camera", "Camera"],
+  ["lens", "Lens"],
+  ["lighting", "Lighting"],
+  ["audio", "Audio"],
+  ["drone", "Drone"],
+  ["gimbal", "Gimbal"],
+  ["tripod", "Tripod"],
+  ["accessory", "Accessory"],
+  ["other", "Other"],
 ] as const;
 
 function EquipmentPage() {
@@ -72,81 +79,116 @@ function EquipmentPage() {
     );
   };
 
+  const total = items?.length ?? 0;
+  // Customers filter Discover by gear, so grouping by category shows the same shape they search.
+  const byCategory = new Map<string, NonNullable<typeof items>>();
+  for (const item of items ?? []) {
+    const group = byCategory.get(item.equipment.category);
+    if (group) group.push(item);
+    else byCategory.set(item.equipment.category, [item]);
+  }
+
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-xl font-semibold">Equipment</h1>
-        <p className="text-sm text-muted-foreground">Show customers the gear you work with.</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" aria-busy={isAdding}>
-        <div className="grid gap-2">
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" required maxLength={120} placeholder="FX3" />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="brand">Brand</Label>
-            <Input id="brand" name="brand" placeholder="Sony" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="model">Model</Label>
-            <Input id="model" name="model" />
-          </div>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="category">Category</Label>
-          <select
-            id="category"
-            name="category"
-            defaultValue="camera"
-            className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+    <StudioPage
+      title="Equipment"
+      description="The gear you work with. Customers filter Discover by it, so accuracy matters more than a long list."
+      count={total}
+      isPending={isPending}
+    >
+      <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-8">
+        <form
+          onSubmit={handleSubmit}
+          className="lg:sticky lg:top-24 lg:self-start"
+          aria-busy={isAdding}
+        >
+          <StudioPanel
+            title="Add gear"
+            description="Matched against a shared catalogue, so the same camera is never listed twice."
+            className="flex flex-col gap-4"
           >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
-        </div>
-        <Button type="submit" disabled={isAdding}>
-          {isAdding && <LoaderCircleIcon className="animate-spin" aria-hidden="true" />}
-          {isAdding ? "Adding..." : "Add equipment"}
-        </Button>
-      </form>
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                required
+                maxLength={120}
+                className="h-9"
+                placeholder="FX3"
+              />
+            </div>
 
-      {isPending ? (
-        <div className="flex justify-center p-6">
-          <LoaderCircleIcon className="animate-spin" aria-hidden="true" />
-        </div>
-      ) : items && items.length > 0 ? (
-        <ul className="flex flex-col gap-3">
-          {items.map(({ equipment: e }) => (
-            <li key={e.id} className="flex items-center justify-between rounded-md border p-3">
-              <div>
-                <p className="text-sm font-medium">
-                  {e.brand ? `${e.brand} ` : ""}
-                  {e.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {e.category}
-                  {e.model ? ` · ${e.model}` : ""}
-                </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-2">
+                <Label htmlFor="brand">Brand</Label>
+                <Input id="brand" name="brand" className="h-9" placeholder="Sony" />
               </div>
-              <button
-                type="button"
-                onClick={() => removeEquipment(e.id)}
-                className="text-muted-foreground hover:text-destructive"
-                aria-label={`Remove ${e.name}`}
-              >
-                <Trash2Icon className="size-4" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-muted-foreground">No equipment added yet.</p>
-      )}
-    </div>
+              <div className="grid gap-2">
+                <Label htmlFor="model">Model</Label>
+                <Input id="model" name="model" className="h-9" placeholder="ILME-FX3" />
+              </div>
+            </div>
+
+            <StudioChips
+              legend="Category"
+              name="category"
+              options={CATEGORIES}
+              type="radio"
+              defaultValue="camera"
+            />
+
+            <StudioSubmit isPending={isAdding} pendingLabel="Adding...">
+              Add equipment
+            </StudioSubmit>
+          </StudioPanel>
+        </form>
+
+        {total > 0 ? (
+          <div className="flex flex-col gap-6">
+            {[...byCategory].map(([category, group]) => (
+              <section key={category} className="flex flex-col gap-3">
+                <h2 className="text-sm font-medium text-muted-foreground capitalize">{category}</h2>
+                <ul className="grid items-start gap-3 sm:grid-cols-2">
+                  {group?.map(({ equipment }) => (
+                    <li
+                      key={equipment.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {equipment.brand ? `${equipment.brand} ` : ""}
+                          {equipment.name}
+                        </p>
+                        {equipment.model ? (
+                          <Badge variant="secondary" className="mt-1 rounded-full font-normal">
+                            {equipment.model}
+                          </Badge>
+                        ) : null}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeEquipment(equipment.id)}
+                        className="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
+                        aria-label={`Remove ${equipment.name}`}
+                      >
+                        <Trash2Icon className="size-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <StudioEmpty
+            title="No equipment listed yet"
+            hint="The kit you shoot on is a real differentiator for technical buyers."
+          >
+            Add the body, lens and lighting you work with. Customers searching for a specific setup
+            in Discover will find you by it.
+          </StudioEmpty>
+        )}
+      </div>
+    </StudioPage>
   );
 }
