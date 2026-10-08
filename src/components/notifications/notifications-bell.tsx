@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BellIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 import { Button } from "#/components/ui/button.tsx";
 import {
@@ -19,6 +20,20 @@ export function NotificationsBell() {
   const { data: unread } = useQuery(unreadCountQueryOptions());
   const { data: items } = useQuery(notificationsQueryOptions());
 
+  const listKey = notificationsQueryOptions().queryKey;
+
+  // Notifications are written for the *other* party, so no mutation on this page can invalidate
+  // them. The unread count is the only thing that polls; it is one integer, so it drives the list:
+  // whenever it moves, something arrived, and the cached list is dropped.
+  const polledUnread = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (unread === undefined) return;
+    if (polledUnread.current !== undefined && polledUnread.current !== unread) {
+      void queryClient.invalidateQueries({ queryKey: listKey });
+    }
+    polledUnread.current = unread;
+  }, [unread, queryClient, listKey]);
+
   const { mutate: markAll } = useMutation({
     mutationFn: async () => await $markAllNotificationsRead(),
     onSuccess: () => {
@@ -27,7 +42,13 @@ export function NotificationsBell() {
   });
 
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      // Opening the panel is the other moment the list can be behind: the count may not have
+      // polled yet even though a notification has already been written.
+      onOpenChange={(open) => {
+        if (open) void queryClient.invalidateQueries({ queryKey: listKey });
+      }}
+    >
       <DropdownMenuTrigger
         render={
           <Button variant="ghost" size="icon" aria-label="Notifications" className="relative" />
@@ -51,7 +72,18 @@ export function NotificationsBell() {
         {items && items.length > 0 ? (
           items.slice(0, 8).map((n) => (
             <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-0.5">
-              <span className="text-sm font-medium">{n.title}</span>
+              <span className="flex w-full items-center gap-2">
+                {n.read ? null : (
+                  <>
+                    <span
+                      className="size-1.5 shrink-0 rounded-full bg-red-500"
+                      aria-hidden="true"
+                    />
+                    <span className="sr-only">Unread.</span>
+                  </>
+                )}
+                <span className="text-sm font-medium">{n.title}</span>
+              </span>
               {n.body && (
                 <span className="line-clamp-2 text-xs text-muted-foreground">{n.body}</span>
               )}

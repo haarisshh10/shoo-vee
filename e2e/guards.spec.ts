@@ -94,6 +94,38 @@ test("adding the same gear twice reuses one catalogue entry", async ({ page }) =
   await expect(page.getByText("Nikon zoom h1n")).toHaveCount(1);
 });
 
+test("completing a booking tells the customer it is reviewable", async ({ page }) => {
+  await login(page, "vikram@example.dev");
+  await page.goto("/app/bookings");
+
+  const asCreator = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "As a creator" }),
+  });
+  await asCreator.getByRole("button", { name: "Accept" }).click();
+  await asCreator.getByRole("button", { name: "Mark completed" }).click();
+
+  await login(page, "demo@sho-vee.dev");
+  await page.getByRole("button", { name: "Notifications" }).click();
+  await expect(page.getByText("Booking completed")).toBeVisible();
+  await expect(page.getByText("leave a review")).toBeVisible();
+});
+
+test("moderation tells the creator their post was removed", async ({ page }) => {
+  await login(page, DEMO_EMAIL);
+  await page.goto("/admin");
+
+  // The admin list is newest first, and the seed inserts posts in creator order, so the first row
+  // belongs to Kabir Singh.
+  const posts = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "Posts" }),
+  });
+  await posts.getByRole("listitem").first().getByRole("button", { name: "Remove" }).click();
+
+  await login(page, "kabir@example.dev");
+  await page.getByRole("button", { name: "Notifications" }).click();
+  await expect(page.getByText("Post removed")).toBeVisible();
+});
+
 test("resolving a report reaches the reporter", async ({ page }) => {
   await login(page, DEMO_EMAIL);
   await page.goto("/admin/reports");
