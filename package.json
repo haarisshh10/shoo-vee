@@ -14,6 +14,7 @@
     "start:e2e": "varlock run -- node .output/server/index.mjs",
     "test": "vp test",
     "test:e2e": "playwright test --pass-with-no-tests",
+    "e2e:prepare": "node e2e/prepare-db.ts",
     "lint": "vp lint --type-aware --type-check",
     "lint:fix": "vp lint --type-aware --type-check --fix",
     "format": "vp fmt",

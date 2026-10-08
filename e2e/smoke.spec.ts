@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+import { login, seedE2eDatabase } from "./seed";
+
 test.beforeAll(async ({ request }) => {
-  await request.post("/api/seed");
+  await seedE2eDatabase(request);
 });
 
 test("landing page shows the brand message", async ({ page }) => {
@@ -22,11 +24,7 @@ test("gigs page lists seeded gigs", async ({ page }) => {
 });
 
 test("login as seeded creator lands on the dashboard", async ({ page }) => {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill("asha@example.dev");
-  await page.getByLabel("Password").fill("Demo1234!");
-  await page.getByRole("button", { name: "Log in" }).click();
-  await page.waitForURL("**/app");
+  await login(page, "asha@example.dev");
   await expect(page.getByText("Hello, Asha Rao")).toBeVisible();
 });
 

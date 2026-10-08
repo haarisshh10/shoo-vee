@@ -8,6 +8,9 @@ const baseURL = `http://localhost:${PORT}`;
 export default defineConfig({
   testDir: "./e2e",
   outputDir: ".cache/playwright",
+  // The suite shares one seeded database, so specs must not run concurrently against it.
+  workers: 1,
+  fullyParallel: false,
   use: {
     baseURL,
     trace: "retain-on-failure",
@@ -19,11 +22,14 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "vp run build && vp run start:e2e",
+    // `e2e:prepare` resets and migrates the throwaway database before the production build runs.
+    command: "vp run e2e:prepare && vp run build && vp run start:e2e",
     env: {
       NODE_ENV: "production",
       PORT: String(PORT),
       VITE_BASE_URL: baseURL,
+      // Required by the seed endpoint, which is admin-only. Never set this in a real deployment.
+      ALLOW_SEED: "true",
       // Zero-config fallback for the starter E2E test.
       // Once the project manages E2E secrets through `.env.e2e` or CI,
       // remove these entries and provide the required variables there instead.
