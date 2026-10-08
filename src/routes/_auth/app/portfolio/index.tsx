@@ -134,7 +134,7 @@ function PortfolioPage() {
               name="mediaUrl"
               label="Media URL"
               mediaType="image"
-              hint="Paste a link to your image or video. Uploading from your camera roll is next."
+              hint="Photos are resized to 1600px and stripped of location data before they are stored."
             />
 
             <div className="grid gap-4">

@@ -1,8 +1,11 @@
-import { ChevronDownIcon, ImageOffIcon } from "lucide-react";
+import { ChevronDownIcon, ImageOffIcon, LoaderCircleIcon, UploadIcon } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
+import { MEDIA_URL_PATTERN } from "#/lib/uploads/schema.ts";
+import { useImageUpload } from "#/lib/uploads/use-image-upload.ts";
 import { cn } from "#/lib/utils.ts";
 
 /**
@@ -123,30 +126,70 @@ export function MediaField({
   hint?: string;
 }) {
   const [url, setUrl] = useState("");
+  const { inputRef, state, isBusy, pick, start } = useImageUpload((media) => setUrl(media.url));
+  const isVideo = mediaType === "video";
 
   return (
     <div className="grid gap-2">
       <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        name={name}
-        type="url"
-        required
-        placeholder="https://…"
-        className="h-9"
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-      />
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          id={id}
+          name={name}
+          type="text"
+          inputMode="url"
+          // Validated here as well as on the server, and against the same rule: `type="url"` would
+          // refuse the path an upload produces, and would refuse it by blocking the submit silently.
+          pattern={MEDIA_URL_PATTERN}
+          title="An uploaded image, or a link to one"
+          required
+          placeholder="https://…"
+          className="h-9 max-w-xs"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+        {isVideo ? null : (
+          <>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) start(file);
+              }}
+            />
+            <Button type="button" variant="outline" size="sm" disabled={isBusy} onClick={pick}>
+              {isBusy ? (
+                <LoaderCircleIcon className="size-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <UploadIcon className="size-4" aria-hidden="true" />
+              )}
+              {state.phase === "compressing"
+                ? "Preparing…"
+                : state.phase === "uploading"
+                  ? `Uploading ${Math.round((state.progress ?? 0) * 100)}%`
+                  : "Upload"}
+            </Button>
+          </>
+        )}
+      </div>
       <div className="flex aspect-[16/9] items-center justify-center overflow-hidden rounded-xl border border-dashed bg-muted/40">
         {url.trim() ? (
           <MediaPreview url={url.trim()} mediaType={mediaType} />
         ) : (
           <p className="flex flex-col items-center gap-2 text-xs text-muted-foreground">
             <ImageOffIcon className="size-5" aria-hidden="true" />
-            Preview appears once you paste a link
+            {isVideo ? "Paste a link to your video" : "Upload a photo or paste a link"}
           </p>
         )}
       </div>
+      {state.error ? (
+        <p role="alert" className="text-xs text-destructive">
+          {state.error}
+        </p>
+      ) : null}
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );
