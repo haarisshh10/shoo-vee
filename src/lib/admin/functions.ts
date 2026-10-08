@@ -6,6 +6,7 @@ import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import { db } from "#/lib/db/index.ts";
 import { creatorProfile, gig, post, user } from "#/lib/db/schema/index.ts";
 import { notify } from "#/lib/notifications/functions.ts";
+import { resolveReportsForRemovedTarget } from "#/lib/reports/functions.ts";
 
 async function requireAdmin(userId: string) {
   const [row] = await db.select().from(user).where(eq(user.id, userId)).limit(1);
@@ -66,8 +67,10 @@ export const $adminRemovePost = createServerFn({ method: "POST" })
   .validator((data) => z.object({ postId: z.string() }).parse(data))
   .handler(async ({ data, context }) => {
     await requireAdmin(context.user.id);
-    await db.delete(post).where(eq(post.id, data.postId));
-    return { removed: true };
+    const [removed] = await db.delete(post).where(eq(post.id, data.postId)).returning();
+    if (!removed) throw new Error("Post not found.");
+    const resolvedReports = await resolveReportsForRemovedTarget("post", removed.id);
+    return { removed: true, resolvedReports };
   });
 
 export const $adminListGigs = createServerFn({ method: "GET" })
@@ -87,5 +90,36 @@ export const $adminCloseGig = createServerFn({ method: "POST" })
       .set({ status: "closed" })
       .where(eq(gig.id, data.gigId))
       .returning();
+    if (!updated) throw new Error("Gig not found.");
+    const resolvedReports = await resolveReportsForRemovedTarget("gig", updated.id);
+    return { ...updated, resolvedReports };
+  });
+
+export const $adminSetUserRole = createServerFn({ method: "POST" })
+  .middleware([freshAuthMiddleware])
+  .validator((data) =>
+    z.object({ userId: z.string(), role: z.enum(["user", "admin"]) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.user.id);
+    // Self-demotion would lock the last admin out of the console with no other way back in.
+    if (data.userId === context.user.id) {
+      throw new Error("You cannot change your own role.");
+    }
+    const [updated] = await db
+      .update(user)
+      .set({ role: data.role })
+      .where(eq(user.id, data.userId))
+      .returning();
+    if (!updated) throw new Error("User not found.");
+
+    await notify(updated.id, {
+      type: "system",
+      title: data.role === "admin" ? "You are now an admin" : "Admin access removed",
+      body:
+        data.role === "admin"
+          ? "You can now open the admin console."
+          : "You can no longer open the admin console.",
+    });
     return updated;
   });

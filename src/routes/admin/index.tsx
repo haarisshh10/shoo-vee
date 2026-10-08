@@ -8,7 +8,9 @@ import {
   $adminCloseGig,
   $adminRemovePost,
   $adminSetCreatorVerification,
+  $adminSetUserRole,
 } from "#/lib/admin/functions.ts";
+import { requireAdminRoute } from "#/lib/admin/guard.ts";
 import {
   adminCreatorsQueryOptions,
   adminGigsQueryOptions,
@@ -16,6 +18,7 @@ import {
 } from "#/lib/admin/queries.ts";
 
 export const Route = createFileRoute("/admin/")({
+  beforeLoad: requireAdminRoute,
   component: AdminPage,
 });
 
@@ -36,11 +39,27 @@ function AdminPage() {
       toast.add({ type: "error", description: error instanceof Error ? error.message : "Failed." }),
   });
 
-  const { mutate: removePost } = useMutation({
-    mutationFn: async (postId: string) => await $adminRemovePost({ data: { postId } }),
+  const { mutate: setRole } = useMutation({
+    mutationFn: async (data: { userId: string; role: "user" | "admin" }) =>
+      await $adminSetUserRole({ data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin"] });
-      toast.add({ type: "success", description: "Post removed." });
+      toast.add({ type: "success", description: "Role updated." });
+    },
+    onError: (error) =>
+      toast.add({ type: "error", description: error instanceof Error ? error.message : "Failed." }),
+  });
+
+  const { mutate: removePost } = useMutation({
+    mutationFn: async (postId: string) => await $adminRemovePost({ data: { postId } }),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["admin"] });
+      toast.add({
+        type: "success",
+        description: result.resolvedReports
+          ? `Post removed. ${result.resolvedReports} report(s) closed.`
+          : "Post removed.",
+      });
     },
     onError: () => toast.add({ type: "error", description: "Failed." }),
   });
@@ -86,10 +105,10 @@ function AdminPage() {
                 <div>
                   <p className="text-sm font-medium">{profile.displayName}</p>
                   <p className="text-xs text-muted-foreground">
-                    {owner.email} · {profile.verificationStatus}
+                    {owner.email} · {profile.verificationStatus} · {owner.role}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {profile.verificationStatus !== "verified" ? (
                     <Button
                       size="sm"
@@ -114,6 +133,18 @@ function AdminPage() {
                     onClick={() => setVerification({ creatorId: profile.id, status: "rejected" })}
                   >
                     Reject
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      setRole({
+                        userId: owner.id,
+                        role: owner.role === "admin" ? "user" : "admin",
+                      })
+                    }
+                  >
+                    {owner.role === "admin" ? "Remove admin" : "Make admin"}
                   </Button>
                 </div>
               </li>

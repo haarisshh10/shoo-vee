@@ -3,10 +3,12 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { Button } from "#/components/ui/button.tsx";
 import { toast } from "#/components/ui/toast.tsx";
+import { requireAdminRoute } from "#/lib/admin/guard.ts";
 import { $adminResolveReport } from "#/lib/reports/functions.ts";
 import { adminReportsQueryOptions } from "#/lib/reports/queries.ts";
 
 export const Route = createFileRoute("/admin/reports/")({
+  beforeLoad: requireAdminRoute,
   component: AdminReportsPage,
 });
 
