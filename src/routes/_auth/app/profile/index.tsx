@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Button } from "#/components/ui/button.tsx";
+import { buttonVariants } from "#/components/ui/button.tsx";
 import { useAuthSuspense } from "#/lib/auth/hooks.ts";
 
 export const Route = createFileRoute("/_auth/app/profile/")({
@@ -17,9 +17,9 @@ function ProfilePage() {
         <p className="text-sm text-muted-foreground">Signed in as {user?.name}.</p>
       </div>
       <div>
-        <Button render={<Link to="/app/profile/creator" />} nativeButton={false}>
+        <Link to="/app/profile/creator" className={buttonVariants()}>
           Edit creator profile
-        </Button>
+        </Link>
       </div>
     </div>
   );

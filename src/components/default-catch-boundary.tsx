@@ -7,7 +7,7 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "#/components/ui/button.tsx";
 
 export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
   const router = useRouter();
@@ -31,9 +31,9 @@ export function DefaultCatchBoundary({ error }: Readonly<ErrorComponentProps>) {
           Try Again
         </Button>
         {isRoot ? (
-          <Button render={<Link to="/" />} variant="secondary" nativeButton={false}>
+          <Link to="/" className={buttonVariants({ variant: "secondary" })}>
             Home
-          </Button>
+          </Link>
         ) : (
           <Button
             render={

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Button } from "#/components/ui/button.tsx";
+import { buttonVariants } from "#/components/ui/button.tsx";
 import { myApplicationsQueryOptions, myGigsQueryOptions } from "#/lib/gigs/queries.ts";
 
 export const Route = createFileRoute("/_auth/app/gigs/")({
@@ -31,14 +31,13 @@ function MyGigsPage() {
                     {g.roleNeeded} · {g.status}
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  render={<Link to="/app/gigs/$gigId" params={{ gigId: g.id }} />}
-                  nativeButton={false}
+                <Link
+                  to="/app/gigs/$gigId"
+                  params={{ gigId: g.id }}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
                 >
                   Manage
-                </Button>
+                </Link>
               </li>
             ))}
           </ul>
