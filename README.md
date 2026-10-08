@@ -26,15 +26,36 @@ A demo account exists in the local dev database (created via the real signup API
 
 Log in at `/login`, then visit `/app`, `/app/profile`, `/app/profile/creator`, `/app/portfolio`. This account is an admin, so `/admin` works too.
 
-### Demo / seed data
+Admin access is granted by promoting the account in the database — there is no signup path to it:
 
-With the dev server running (`localhost` in `VITE_BASE_URL`), seed the local database with fictional creators, portfolio items, services, equipment, gigs, posts, bookings, and one review:
-
-```sh
-curl -X POST http://localhost:3000/api/seed
+```sql
+UPDATE "user" SET role = 'admin' WHERE email = 'demo@sho-vee.dev';
 ```
 
-It is idempotent — if creators already exist it skips. Seeded creator accounts log in with `Demo1234!` (emails like `asha@example.dev`).
+`/admin` then shows the creator verification controls, the role toggle, the moderation queues (`/admin` and `/admin/reports`) and the link in the app sidebar. Both routes redirect non-admins to `/app`; every admin server function re-checks the role on the server, so the redirect is a convenience, not the guard.
+
+### Demo / seed data
+
+With the dev server running, seed the local database with fictional creators, portfolio items, services, equipment, gigs, posts, bookings, and one review:
+
+1. Enable seeding for this environment in `.env.local`:
+
+   ```sh
+   ALLOW_SEED=true
+   ```
+
+2. Sign in as an admin (see above), then:
+
+   ```sh
+   curl -X POST -b 'better-auth.session_token=<cookie>' http://localhost:3000/api/seed
+   ```
+
+`/api/seed` is gated twice: the `ALLOW_SEED` flag must be on, and the caller must hold an admin session (cookie cache disabled, so a demoted admin is rejected). The public origin is deliberately not part of that check — `VITE_BASE_URL` is inlined into the client bundle and a staging or proxied deployment could satisfy a naive hostname test.
+
+Seeding is idempotent — if creator profiles already exist it returns `{"seeded": false}` and does nothing.
+
+> [!WARNING]
+> Every seeded account (`asha@example.dev` and friends, plus `demo@sho-vee.dev`) shares the password `Demo1234!`, which is also printed on the local login page. Leave `ALLOW_SEED` unset in staging and production, and change the demo password before exposing the app anywhere real.
 
 ### Where things live
 
@@ -51,6 +72,30 @@ It is idempotent — if creators already exist it skips. Seeded creator accounts
 | UI components      | `src/components/`, primitives in `src/components/ui/`                                                                                                     |
 | Migrations         | `drizzle/` (generated, do not hand-edit)                                                                                                                  |
 | E2E tests          | `e2e/*.spec.ts`; unit tests colocated as `*.test.ts`                                                                                                      |
+
+### Running the E2E suite
+
+`vpr test:e2e` owns its own lifecycle: it prepares a throwaway database, builds the app, starts the
+built server on port 3100 and runs Playwright against it.
+
+- One-time per machine: `vpx playwright install chromium`.
+- The test database is `sho_vee_e2e` by default (`DATABASE_URL` overrides it). `vpr e2e:prepare`
+  creates it if missing, resets the schema and applies `drizzle/` — it refuses to touch a database
+  whose name does not contain `e2e` or `test`.
+- The suite signs in as an admin and then calls `/api/seed`, so `playwright.config.ts` sets
+  `ALLOW_SEED=true` for the server process only. No `.env.local` change is needed.
+- Specs share one seeded database, so `playwright.config.ts` pins `workers: 1`.
+
+### Known gaps
+
+Deliberately not built yet, so they don't get mistaken for oversights:
+
+- Rate limiting covers the Better Auth endpoints (`src/lib/auth/auth.ts`). Non-auth mutations —
+  `/api/seed`, report submission — rely on authentication and ownership checks instead.
+- Booking cancellation covers both the customer and the creator. A dedicated `no_show` state is not
+  modelled yet.
+- `/admin` is a single page with creators, posts and gigs; `/admin/reports` is separate. The original
+  spec also asked for a standalone `/admin/creators` page.
 
 ### How to modify the database
 
@@ -131,6 +176,16 @@ Useful checks: `vpr lint` (lint + types), `vpr check` (format+lint+types), `vpr 
 [Varlock](https://varlock.dev/) keeps the environment-variable contract in `.env.schema` and generates types from it. Put local values, including secrets, in the uncommitted `.env.local`, then run `vpr env:load` to validate them.
 
 In application code, `import { ENV } from "varlock/env"` instead of reading `process.env` directly.
+
+| Variable                | Purpose                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `VITE_BASE_URL`         | Public origin used by the browser and Better Auth. Inlined into the client bundle. |
+| `DATABASE_URL`          | PostgreSQL connection URL.                                                         |
+| `BETTER_AUTH_SECRET`    | Session signing secret.                                                            |
+| `ALLOW_SEED`            | Opt-in for `POST /api/seed`. Local/staging only — never set it in production.      |
+| `GITHUB_*` / `GOOGLE_*` | Optional OAuth credentials.                                                        |
+
+`ALLOW_SEED` is a feature switch, not the access control: `/api/seed` also requires an admin session.
 
 ## Logging
 
