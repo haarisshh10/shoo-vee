@@ -46,6 +46,20 @@ export const auth = betterAuth({
     enabled: true,
   },
 
+  // https://better-auth.com/docs/concepts/rate-limit
+  // Rate limiting is production-only by default, and the built-in sign-in rule (3 per 10s) trips
+  // easily behind a shared IP. Widened here so credential stuffing stays expensive without locking
+  // out a household or an office sharing one connection.
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+    customRules: {
+      "/sign-in/*": { window: 60, max: 20 },
+      "/sign-up/*": { window: 60, max: 10 },
+    },
+  },
+
   user: {
     additionalFields: {
       role: {
