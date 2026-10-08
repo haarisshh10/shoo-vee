@@ -6,10 +6,11 @@ import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import { db } from "#/lib/db/index.ts";
 import { creatorProfile, post } from "#/lib/db/schema/index.ts";
 import { resolveReportsForRemovedTarget } from "#/lib/reports/functions.ts";
+import { mediaUrl } from "#/lib/uploads/schema.ts";
 
 const postSchema = z.object({
   caption: z.string().trim().max(2000).optional(),
-  mediaUrl: z.url(),
+  mediaUrl,
   mediaType: z.enum(["image", "video"]),
   location: z.string().trim().max(120).optional(),
   tags: z.array(z.string().trim().min(1).max(50)).max(10).default([]),

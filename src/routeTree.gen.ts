@@ -21,6 +21,8 @@ import { Route as PublicGigsRouteImport } from './routes/_public/gigs'
 import { Route as PublicShotsRouteImport } from './routes/_public/shots'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ApiSeedRouteImport } from './routes/api/seed'
+import { Route as ApiUploadsRouteImport } from './routes/api/uploads'
+import { Route as UploadsFileRouteImport } from './routes/uploads/$file'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as AuthAppMessagesRouteImport } from './routes/_auth/app/messages'
 import { Route as AuthAppOnboardingRouteImport } from './routes/_auth/app/onboarding'
@@ -94,6 +96,16 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const ApiSeedRoute = ApiSeedRouteImport.update({
   id: '/api/seed',
   path: '/api/seed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUploadsRoute = ApiUploadsRouteImport.update({
+  id: '/api/uploads',
+  path: '/api/uploads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UploadsFileRoute = UploadsFileRouteImport.update({
+  id: '/uploads/$file',
+  path: '/uploads/$file',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthAppIndexRoute = AuthAppIndexRouteImport.update({
@@ -191,6 +203,8 @@ export interface FileRoutesByFullPath {
   '/gigs': typeof PublicGigsRoute
   '/shots': typeof PublicShotsRoute
   '/api/seed': typeof ApiSeedRoute
+  '/api/uploads': typeof ApiUploadsRoute
+  '/uploads/$file': typeof UploadsFileRoute
   '/admin/': typeof AdminIndexRoute
   '/app/messages': typeof AuthAppMessagesRoute
   '/app/onboarding': typeof AuthAppOnboardingRoute
@@ -218,6 +232,8 @@ export interface FileRoutesByTo {
   '/gigs': typeof PublicGigsRoute
   '/shots': typeof PublicShotsRoute
   '/api/seed': typeof ApiSeedRoute
+  '/api/uploads': typeof ApiUploadsRoute
+  '/uploads/$file': typeof UploadsFileRoute
   '/admin': typeof AdminIndexRoute
   '/app/messages': typeof AuthAppMessagesRoute
   '/app/onboarding': typeof AuthAppOnboardingRoute
@@ -249,6 +265,8 @@ export interface FileRoutesById {
   '/_public/gigs': typeof PublicGigsRoute
   '/_public/shots': typeof PublicShotsRoute
   '/api/seed': typeof ApiSeedRoute
+  '/api/uploads': typeof ApiUploadsRoute
+  '/uploads/$file': typeof UploadsFileRoute
   '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_auth/app/messages': typeof AuthAppMessagesRoute
@@ -280,6 +298,8 @@ export interface FileRouteTypes {
     | '/gigs'
     | '/shots'
     | '/api/seed'
+    | '/api/uploads'
+    | '/uploads/$file'
     | '/admin/'
     | '/app/messages'
     | '/app/onboarding'
@@ -307,6 +327,8 @@ export interface FileRouteTypes {
     | '/gigs'
     | '/shots'
     | '/api/seed'
+    | '/api/uploads'
+    | '/uploads/$file'
     | '/admin'
     | '/app/messages'
     | '/app/onboarding'
@@ -337,6 +359,8 @@ export interface FileRouteTypes {
     | '/_public/gigs'
     | '/_public/shots'
     | '/api/seed'
+    | '/api/uploads'
+    | '/uploads/$file'
     | '/_public/'
     | '/admin/'
     | '/_auth/app/messages'
@@ -363,6 +387,8 @@ export interface RootRouteChildren {
   GuestRouteRoute: typeof GuestRouteRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
   ApiSeedRoute: typeof ApiSeedRoute
+  ApiUploadsRoute: typeof ApiUploadsRoute
+  UploadsFileRoute: typeof UploadsFileRoute
   AdminIndexRoute: typeof AdminIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   AdminReportsIndexRoute: typeof AdminReportsIndexRoute
@@ -452,6 +478,20 @@ declare module '@tanstack/react-router' {
       path: '/api/seed'
       fullPath: '/api/seed'
       preLoaderRoute: typeof ApiSeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/uploads': {
+      id: '/api/uploads'
+      path: '/api/uploads'
+      fullPath: '/api/uploads'
+      preLoaderRoute: typeof ApiUploadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uploads/$file': {
+      id: '/uploads/$file'
+      path: '/uploads/$file'
+      fullPath: '/uploads/$file'
+      preLoaderRoute: typeof UploadsFileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/app/': {
@@ -664,6 +704,8 @@ const rootRouteChildren: RootRouteChildren = {
   GuestRouteRoute: GuestRouteRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
   ApiSeedRoute: ApiSeedRoute,
+  ApiUploadsRoute: ApiUploadsRoute,
+  UploadsFileRoute: UploadsFileRoute,
   AdminIndexRoute: AdminIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   AdminReportsIndexRoute: AdminReportsIndexRoute,

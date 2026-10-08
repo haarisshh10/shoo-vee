@@ -13,6 +13,7 @@ import {
   service,
   user,
 } from "#/lib/db/schema/index.ts";
+import { httpUrl, optionalMediaUrl } from "#/lib/uploads/schema.ts";
 
 const creatorTypes = [
   "photographer",
@@ -29,15 +30,15 @@ const creatorTypes = [
 export const createProfileSchema = z.object({
   displayName: z.string().trim().min(1).max(100),
   bio: z.string().trim().max(2000).optional(),
-  profileImageUrl: z.url().optional().or(z.literal("")),
-  coverImageUrl: z.url().optional().or(z.literal("")),
+  profileImageUrl: optionalMediaUrl,
+  coverImageUrl: optionalMediaUrl,
   location: z.string().trim().max(120).optional(),
   specialties: z.array(z.string().trim().min(1).max(50)).max(20).default([]),
   creatorTypes: z.array(z.enum(creatorTypes)).max(creatorTypes.length).default([]),
   startingPrice: z.number().int().min(0).max(100_000_000).optional(),
   currency: z.string().trim().length(3).default("INR"),
   experienceYears: z.number().int().min(0).max(80).optional(),
-  socialLinks: z.record(z.string(), z.url()).optional(),
+  socialLinks: z.record(z.string(), httpUrl).optional(),
   languages: z.array(z.string().trim().min(1).max(50)).max(20).default([]),
   availabilityStatus: z.enum(["available", "busy", "unavailable"]).default("available"),
 });

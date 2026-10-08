@@ -1,4 +1,5 @@
 export * from "./auth.schema";
+export * from "./media.schema";
 export * from "./types";
 export * from "./creator.schema";
 export * from "./portfolio.schema";

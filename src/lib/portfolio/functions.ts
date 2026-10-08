@@ -5,6 +5,7 @@ import { z } from "zod";
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import { db } from "#/lib/db/index.ts";
 import { creatorProfile, portfolioItem } from "#/lib/db/schema/index.ts";
+import { mediaUrl } from "#/lib/uploads/schema.ts";
 
 const portfolioCategories = [
   "wedding",
@@ -24,7 +25,7 @@ const portfolioCategories = [
 const portfolioItemSchema = z.object({
   title: z.string().trim().min(1).max(120),
   description: z.string().trim().max(2000).optional(),
-  mediaUrl: z.url(),
+  mediaUrl,
   mediaType: z.enum(["image", "video"]),
   category: z.enum(portfolioCategories),
   tags: z.array(z.string().trim().min(1).max(50)).max(10).default([]),

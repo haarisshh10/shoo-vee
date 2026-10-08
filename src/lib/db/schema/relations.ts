@@ -3,6 +3,12 @@ import { defineRelations } from "drizzle-orm";
 import * as schema from "./";
 
 export const relations = defineRelations(schema, (r) => ({
+  user: {
+    media: r.many.media({ from: r.user.id, to: r.media.ownerId }),
+  },
+  media: {
+    owner: r.one.user({ from: r.media.ownerId, to: r.user.id }),
+  },
   creatorProfile: {
     user: r.one.user({ from: r.creatorProfile.userId, to: r.user.id }),
     portfolioItems: r.many.portfolioItem({
