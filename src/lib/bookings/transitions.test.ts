@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   BOOKING_TRANSITIONS,
   describeTransitionFailure,
+  describeTransitionOutcome,
   resolveBookingTransition,
   type BookingAction,
   type BookingRole,
@@ -61,5 +62,42 @@ describe("booking transitions", () => {
     expect(describeTransitionFailure("accept", "creator", "completed")).toBe(
       "Cannot accept a booking that is completed.",
     );
+  });
+});
+
+describe("booking transition notifications", () => {
+  it("names the party that cancelled, since either side can", () => {
+    expect(describeTransitionOutcome("cancel", "customer").body).toBe(
+      "The customer cancelled this booking.",
+    );
+    expect(describeTransitionOutcome("cancel", "creator").body).toBe(
+      "The creator cancelled this booking.",
+    );
+  });
+
+  it("tells the customer a completed booking is reviewable", () => {
+    const outcome = describeTransitionOutcome("complete", "creator");
+    expect(outcome.title).toBe("Booking completed");
+    expect(outcome.body).toContain("leave a review");
+  });
+
+  it("spells out the decision on a request", () => {
+    expect(describeTransitionOutcome("accept", "creator")).toEqual({
+      title: "Booking accepted",
+      body: "Your booking request was accepted.",
+    });
+    expect(describeTransitionOutcome("reject", "creator")).toEqual({
+      title: "Booking declined",
+      body: "Your booking request was declined.",
+    });
+  });
+
+  it("reads as a sentence instead of a status dump", () => {
+    for (const action of ACTIONS) {
+      const { body } = describeTransitionOutcome(action, "creator");
+      // The old template interpolated the status enum straight into a sentence.
+      expect(body).not.toMatch(/\bis now\b/);
+      expect(body.endsWith(".")).toBe(true);
+    }
   });
 });

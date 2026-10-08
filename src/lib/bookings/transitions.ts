@@ -46,3 +46,30 @@ export function describeTransitionFailure(
   if (!rule.roles.includes(role)) return "Not allowed to change this booking.";
   return `Cannot ${action} a booking that is ${status}.`;
 }
+
+/**
+ * Notification copy for a booking status change, read by the party that did not trigger it.
+ *
+ * Completion is the one status that hands the customer an action — the booking becomes reviewable
+ * — so it says so instead of restating the status.
+ */
+export function describeTransitionOutcome(
+  action: BookingAction,
+  role: BookingRole,
+): { title: string; body: string } {
+  const actor = role === "creator" ? "The creator" : "The customer";
+
+  switch (action) {
+    case "cancel":
+      return { title: "Booking cancelled", body: `${actor} cancelled this booking.` };
+    case "accept":
+      return { title: "Booking accepted", body: "Your booking request was accepted." };
+    case "reject":
+      return { title: "Booking declined", body: "Your booking request was declined." };
+    case "complete":
+      return {
+        title: "Booking completed",
+        body: "This booking is done — leave a review to help other creators.",
+      };
+  }
+}

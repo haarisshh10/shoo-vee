@@ -5,7 +5,9 @@ import { z } from "zod";
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import {
   describeTransitionFailure,
+  describeTransitionOutcome,
   resolveBookingTransition,
+  type BookingAction,
   type BookingRole,
 } from "#/lib/bookings/transitions.ts";
 import { db } from "#/lib/db/index.ts";
@@ -135,19 +137,17 @@ export const $transitionBooking = createServerFn({ method: "POST" })
       .where(eq(booking.id, existing.id))
       .returning();
 
-    await notifyCounterparty({ data, role, next, existing });
+    await notifyCounterparty({ action: data.action, role, existing });
     return updated;
   });
 
 async function notifyCounterparty({
-  data,
+  action,
   role,
-  next,
   existing,
 }: {
-  data: { action: "accept" | "reject" | "cancel" | "complete" };
+  action: BookingAction;
   role: BookingRole;
-  next: string;
   existing: typeof booking.$inferSelect;
 }) {
   const [creator] = await db
@@ -159,20 +159,5 @@ async function notifyCounterparty({
 
   // Whoever did not press the button is the one who needs to know.
   const recipientId = role === "creator" ? existing.customerId : creator.userId;
-  const byline = role === "creator" ? "The creator" : "The customer";
-
-  if (data.action === "cancel") {
-    await notify(recipientId, {
-      type: "booking",
-      title: "Booking cancelled",
-      body: `${byline} cancelled this booking.`,
-    });
-    return;
-  }
-
-  await notify(recipientId, {
-    type: "booking",
-    title: `Booking ${next}`,
-    body: `Your booking request is now ${next}.`,
-  });
+  await notify(recipientId, { type: "booking", ...describeTransitionOutcome(action, role) });
 }
