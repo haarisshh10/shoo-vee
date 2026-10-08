@@ -67,9 +67,22 @@ export const $adminRemovePost = createServerFn({ method: "POST" })
   .validator((data) => z.object({ postId: z.string() }).parse(data))
   .handler(async ({ data, context }) => {
     await requireAdmin(context.user.id);
-    const [removed] = await db.delete(post).where(eq(post.id, data.postId)).returning();
-    if (!removed) throw new Error("Post not found.");
-    const resolvedReports = await resolveReportsForRemovedTarget("post", removed.id);
+    const [owner] = await db
+      .select({ userId: creatorProfile.userId })
+      .from(post)
+      .innerJoin(creatorProfile, eq(post.creatorId, creatorProfile.id))
+      .where(eq(post.id, data.postId))
+      .limit(1);
+    if (!owner) throw new Error("Post not found.");
+
+    await db.delete(post).where(eq(post.id, data.postId));
+    // Moderation is silent by default otherwise, and the owner has no way to find out.
+    await notify(owner.userId, {
+      type: "system",
+      title: "Post removed",
+      body: "A moderator removed one of your posts.",
+    });
+    const resolvedReports = await resolveReportsForRemovedTarget("post", data.postId);
     return { removed: true, resolvedReports };
   });
 
@@ -91,6 +104,11 @@ export const $adminCloseGig = createServerFn({ method: "POST" })
       .where(eq(gig.id, data.gigId))
       .returning();
     if (!updated) throw new Error("Gig not found.");
+    await notify(updated.posterId, {
+      type: "gig",
+      title: "Gig closed",
+      body: `A moderator closed "${updated.title}".`,
+    });
     const resolvedReports = await resolveReportsForRemovedTarget("gig", updated.id);
     return { ...updated, resolvedReports };
   });
