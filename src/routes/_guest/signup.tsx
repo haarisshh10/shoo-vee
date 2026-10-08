@@ -15,16 +15,19 @@ export const Route = createFileRoute("/_guest/signup")({
 });
 
 function SignupForm() {
-  const { redirectUrl } = Route.useRouteContext();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  // New accounts answer one intent question before they see the marketplace, so nobody lands on an
+  // empty dashboard. The callback URL is absolute-safe because Better Auth handles the redirect.
+  const onboardingUrl = "/app/onboarding";
 
   const { mutate: signupMutate, isPending } = useMutation({
     mutationFn: async (data: { name: string; email: string; password: string }) => {
       await authClient.signUp.email(
         {
           ...data,
-          callbackURL: redirectUrl,
+          callbackURL: onboardingUrl,
         },
         {
           onError: ({ error }) => {
@@ -35,7 +38,7 @@ function SignupForm() {
           },
           onSuccess: () => {
             queryClient.removeQueries({ queryKey: authQueryOptions().queryKey });
-            navigate({ to: redirectUrl });
+            void navigate({ to: onboardingUrl });
           },
         },
       );
@@ -134,7 +137,7 @@ function SignupForm() {
               {isPending ? "Signing up..." : "Sign up"}
             </Button>
           </div>
-          <SocialSignInButtons callbackURL={redirectUrl} disabled={isPending} />
+          <SocialSignInButtons callbackURL={onboardingUrl} disabled={isPending} />
         </div>
       </form>
 

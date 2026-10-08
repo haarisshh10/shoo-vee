@@ -47,15 +47,15 @@ export const auth = betterAuth({
   },
 
   // https://better-auth.com/docs/concepts/rate-limit
-  // Rate limiting is production-only by default, and the built-in sign-in rule (3 per 10s) trips
-  // easily behind a shared IP. Widened here so credential stuffing stays expensive without locking
-  // out a household or an office sharing one connection.
+  // Only active in production by default, and the built-in sign-in rule (3 per 10s) trips easily
+  // behind a shared IP. Widened here so brute force stays expensive without locking out a
+  // household, an office on one connection, or a test run where every client shares one bucket.
   rateLimit: {
     enabled: true,
     window: 60,
     max: 100,
     customRules: {
-      "/sign-in/*": { window: 60, max: 20 },
+      "/sign-in/*": { window: 60, max: 40 },
       "/sign-up/*": { window: 60, max: 10 },
     },
   },
@@ -65,6 +65,32 @@ export const auth = betterAuth({
       role: {
         type: "string",
         defaultValue: "user",
+        input: false,
+      },
+
+      // Onboarding interests. These are preferences, not roles: one account can hold any
+      // combination, and Creator Profile activation is decided by the presence of a
+      // `creator_profile` row rather than by a flag here.
+      hireCreators: {
+        type: "boolean",
+        defaultValue: false,
+        input: false,
+      },
+      showcaseWork: {
+        type: "boolean",
+        defaultValue: false,
+        input: false,
+      },
+      findGigs: {
+        type: "boolean",
+        defaultValue: false,
+        input: false,
+      },
+      // Null until onboarding is answered, which is what distinguishes "not asked yet" from
+      // "asked and picked nothing".
+      preferencesSetAt: {
+        type: "date",
+        required: false,
         input: false,
       },
     },

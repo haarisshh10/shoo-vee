@@ -8,6 +8,10 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   role: text("role").default("user").notNull(),
+  hireCreators: boolean("hire_creators").default(false).notNull(),
+  showcaseWork: boolean("showcase_work").default(false).notNull(),
+  findGigs: boolean("find_gigs").default(false).notNull(),
+  preferencesSetAt: timestamp("preferences_set_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
