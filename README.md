@@ -17,6 +17,42 @@ pnpm create cove
 
 ## Sho-vee project guide
 
+### One account, two surfaces
+
+Sho-vee has **one marketplace account for everyone**. There are no buyer and creator silos: a single
+account can discover creators, hire them, browse shots, find gigs, apply to gigs and be booked. Two
+roles exist and they are not mutually exclusive.
+
+**Marketplace** — available to every signed-in user:
+
+- `/discover` — search and filter creators by craft, city, gear, price and rating
+- `/shots` — the community feed of work
+- `/gigs` — short-term crew work, post and apply
+- `/creators` — the full creator directory
+- `/app` — your Sho-vee home: recommended creators, fresh shots, gigs and quick actions
+- `/app/bookings`, `/app/messages` (placeholder)
+
+**Studio** — unlocked by activating a Creator Profile, never by a separate account:
+
+- `/app/studio` — overview of requests, portfolio, services, posts and applications
+- `/app/profile/creator`, `/app/portfolio`, `/app/services`, `/app/equipment`, `/app/posts`,
+  `/app/bookings`, `/app/gigs`
+
+Activation happens at `/app/profile/creator`. Until a `creator_profile` row exists, the Studio
+navigation is not shown and the home page offers the activation CTA instead — prominently when the
+account picked "Showcase my work" during onboarding.
+
+**Admin** is a permission, not a place: `/admin` and `/admin/reports` are reachable from the account
+menu only, never from the marketplace navigation.
+
+### Onboarding interests
+
+After signup, `/app/onboarding` asks "What brings you to Sho-vee?" with three independent options —
+hire creators, showcase my work, find gigs. They are preferences stored as
+`user.hire_creators`, `user.showcase_work` and `user.find_gigs` (plus `preferences_set_at`, which is
+what distinguishes "not asked yet" from "asked and picked nothing"). They shape the first-run home
+page and nothing else: no interest is exclusive, and none of them gates a capability.
+
 ### Demo login
 
 A demo account exists in the local dev database (created via the real signup API):
@@ -24,7 +60,9 @@ A demo account exists in the local dev database (created via the real signup API
 - Email: `demo@sho-vee.dev`
 - Password: `Demo1234!`
 
-Log in at `/login`, then visit `/app`, `/app/profile`, `/app/profile/creator`, `/app/portfolio`. This account is an admin, so `/admin` works too.
+Log in at `/login`, then visit `/app` (marketplace home) and `/app/profile/creator`. This account has
+no creator profile, so it is the quickest way to see the activation path. It is also an admin, so
+`/admin` works.
 
 Admin access is granted by promoting the account in the database — there is no signup path to it:
 
@@ -32,7 +70,8 @@ Admin access is granted by promoting the account in the database — there is no
 UPDATE "user" SET role = 'admin' WHERE email = 'demo@sho-vee.dev';
 ```
 
-`/admin` then shows the creator verification controls, the role toggle, the moderation queues (`/admin` and `/admin/reports`) and the link in the app sidebar. Both routes redirect non-admins to `/app`; every admin server function re-checks the role on the server, so the redirect is a convenience, not the guard.
+Both admin routes redirect non-admins to `/app`; every admin server function re-checks the role on
+the server, so the redirect is a convenience, not the guard.
 
 ### Demo / seed data
 
@@ -59,19 +98,21 @@ Seeding is idempotent — if creator profiles already exist it returns `{"seeded
 
 ### Where things live
 
-| Area               | Location                                                                                                                                                  |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Route pages        | `src/routes/` (`_auth/*` = signed-in, `_guest/*` = login/signup, public top-level routes)                                                                 |
-| DB tables          | `src/lib/db/schema/*.schema.ts`, one file per domain (`creator`, `portfolio`, `service`, `equipment`, `booking`, `gig`, `review`, `post`, `notification`) |
-| Shared union types | `src/lib/db/schema/types.ts`                                                                                                                              |
-| Table relations    | `src/lib/db/schema/relations.ts` (Drizzle relations v2 `defineRelations`)                                                                                 |
-| Better Auth schema | `src/lib/db/schema/auth.schema.ts` (generated — do not hand-edit)                                                                                         |
-| Server functions   | `src/lib/<domain>/functions.ts` (auth via `src/lib/auth/middleware.ts`)                                                                                   |
-| Query options      | `src/lib/<domain>/queries.ts`                                                                                                                             |
-| Auth config        | `src/lib/auth/auth.ts`                                                                                                                                    |
-| UI components      | `src/components/`, primitives in `src/components/ui/`                                                                                                     |
-| Migrations         | `drizzle/` (generated, do not hand-edit)                                                                                                                  |
-| E2E tests          | `e2e/*.spec.ts`; unit tests colocated as `*.test.ts`                                                                                                      |
+| Area               | Location                                                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Route pages        | `src/routes/` (`_auth/*` = signed-in, `_guest/*` = login/signup, public top-level routes)                                                                           |
+| DB tables          | `src/lib/db/schema/*.schema.ts`, one file per domain (`creator`, `portfolio`, `service`, `equipment`, `booking`, `gig`, `review`, `post`, `notification`, `report`) |
+| Onboarding         | `src/lib/onboarding/` — the interest options, the two server functions that read and save them                                                                      |
+| Shared union types | `src/lib/db/schema/types.ts`                                                                                                                                        |
+| Table relations    | `src/lib/db/schema/relations.ts` (Drizzle relations v2 `defineRelations`)                                                                                           |
+| Better Auth schema | `src/lib/db/schema/auth.schema.ts` (generated — do not hand-edit)                                                                                                   |
+| Server functions   | `src/lib/<domain>/functions.ts` (auth via `src/lib/auth/middleware.ts`)                                                                                             |
+| Query options      | `src/lib/<domain>/queries.ts`                                                                                                                                       |
+| Auth config        | `src/lib/auth/auth.ts`                                                                                                                                              |
+| UI components      | `src/components/`, primitives in `src/components/ui/`; marketplace cards in `creator/`, `shots/`, `gigs/`; landing sections in `landing/`                           |
+| Navigation CTAs    | Use `<Link className={buttonVariants(...)}>`, not `<Button render={<Link/>}>` — see [Links look like buttons](#links-that-look-like-buttons)                        |
+| Migrations         | `drizzle/` (generated, do not hand-edit)                                                                                                                            |
+| E2E tests          | `e2e/*.spec.ts`; unit tests colocated as `*.test.ts`                                                                                                                |
 
 ### Running the E2E suite
 
@@ -96,6 +137,22 @@ Deliberately not built yet, so they don't get mistaken for oversights:
   modelled yet.
 - `/admin` is a single page with creators, posts and gigs; `/admin/reports` is separate. The original
   spec also asked for a standalone `/admin/creators` page.
+
+### Links that look like buttons
+
+Navigation must stay a real anchor: screen readers announce it as a link and it keeps its href in the
+server-rendered HTML. Base UI's `Button` with `render={<Link/>} nativeButton={false}` also applies
+`role="button"`, which turns every CTA into a button semantically. Use `buttonVariants` instead:
+
+```tsx
+import { buttonVariants } from "#/components/ui/button.tsx";
+
+<Link to="/signup" className={buttonVariants({ size: "lg" })}>
+  Join Sho-vee
+</Link>;
+```
+
+`Button` stays for actions — submitting a form, opening a menu, triggering a mutation.
 
 ### How to modify the database
 
@@ -218,6 +275,7 @@ Check [package.json](./package.json) for the full list of available scripts.
 
 - **`auth:generate`** - Regenerate the [auth db schema](./src/lib/db/schema/auth.schema.ts) if you've made changes to your Better Auth [config](./src/lib/auth/auth.ts).
 - **`db`** - Run [drizzle-kit](https://orm.drizzle.team/docs/kit-overview) commands. (e.g. `vpr db generate`, `vpr db studio`)
+- **`e2e:prepare`** - Create, reset and migrate the throwaway E2E database. Playwright runs this itself.
 - **`ui`** - The shadcn/ui CLI. (e.g. `vpr ui add button`)
 - **`format`**, **`lint`** - Run Oxfmt and Oxlint, or both via `vpr check`.
 - **`deps`** - Selectively upgrade dependencies via taze.
@@ -233,7 +291,7 @@ The [testing foundation](./.agents/testing.md) uses Vitest and Playwright and is
 
 - `vpr test` (or Vite+'s built-in `vp test`) runs the Vitest unit and local integration tests once.
 - `vpr test watch` runs Vitest in watch mode.
-- `vpr test:e2e` builds the app and runs the Playwright end-to-end tests.
+- `vpr test:e2e` builds the app and runs the Playwright end-to-end tests: `smoke.spec.ts` (landing, discover, gigs, login, shots), `discovery.spec.ts` (landing sections, creator cards, filters, shots feed, creator directory, navigation) and `onboarding.spec.ts` (intent capture, creator activation, messages placeholder), plus `guards.spec.ts` for authorization.
 
 ## License
 
