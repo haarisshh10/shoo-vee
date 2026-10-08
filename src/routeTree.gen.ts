@@ -22,6 +22,9 @@ import { Route as PublicShotsRouteImport } from './routes/_public/shots'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ApiSeedRouteImport } from './routes/api/seed'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
+import { Route as AuthAppMessagesRouteImport } from './routes/_auth/app/messages'
+import { Route as AuthAppOnboardingRouteImport } from './routes/_auth/app/onboarding'
+import { Route as PublicCreatorsIndexRouteImport } from './routes/_public/creators/index'
 import { Route as PublicCreatorsCreatorIdRouteImport } from './routes/_public/creators/$creatorId'
 import { Route as AdminReportsIndexRouteImport } from './routes/admin/reports/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -34,6 +37,7 @@ import { Route as AuthAppPostsIndexRouteImport } from './routes/_auth/app/posts/
 import { Route as AuthAppProfileIndexRouteImport } from './routes/_auth/app/profile/index'
 import { Route as AuthAppProfileCreatorRouteImport } from './routes/_auth/app/profile/creator'
 import { Route as AuthAppServicesIndexRouteImport } from './routes/_auth/app/services/index'
+import { Route as AuthAppStudioIndexRouteImport } from './routes/_auth/app/studio/index'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -97,6 +101,21 @@ const AuthAppIndexRoute = AuthAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthAppRouteRoute,
 } as any)
+const AuthAppMessagesRoute = AuthAppMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
+const AuthAppOnboardingRoute = AuthAppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
+const PublicCreatorsIndexRoute = PublicCreatorsIndexRouteImport.update({
+  id: '/creators/',
+  path: '/creators/',
+  getParentRoute: () => PublicRoute,
+} as any)
 const PublicCreatorsCreatorIdRoute = PublicCreatorsCreatorIdRouteImport.update({
   id: '/creators/$creatorId',
   path: '/creators/$creatorId',
@@ -157,6 +176,11 @@ const AuthAppServicesIndexRoute = AuthAppServicesIndexRouteImport.update({
   path: '/services/',
   getParentRoute: () => AuthAppRouteRoute,
 } as any)
+const AuthAppStudioIndexRoute = AuthAppStudioIndexRouteImport.update({
+  id: '/studio/',
+  path: '/studio/',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
@@ -168,9 +192,12 @@ export interface FileRoutesByFullPath {
   '/shots': typeof PublicShotsRoute
   '/api/seed': typeof ApiSeedRoute
   '/admin/': typeof AdminIndexRoute
+  '/app/messages': typeof AuthAppMessagesRoute
+  '/app/onboarding': typeof AuthAppOnboardingRoute
   '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
+  '/creators/': typeof PublicCreatorsIndexRoute
   '/admin/reports/': typeof AdminReportsIndexRoute
   '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
@@ -181,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/app/posts/': typeof AuthAppPostsIndexRoute
   '/app/profile/': typeof AuthAppProfileIndexRoute
   '/app/services/': typeof AuthAppServicesIndexRoute
+  '/app/studio/': typeof AuthAppStudioIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
@@ -191,9 +219,12 @@ export interface FileRoutesByTo {
   '/shots': typeof PublicShotsRoute
   '/api/seed': typeof ApiSeedRoute
   '/admin': typeof AdminIndexRoute
+  '/app/messages': typeof AuthAppMessagesRoute
+  '/app/onboarding': typeof AuthAppOnboardingRoute
   '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
+  '/creators': typeof PublicCreatorsIndexRoute
   '/admin/reports': typeof AdminReportsIndexRoute
   '/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
   '/app/profile/creator': typeof AuthAppProfileCreatorRoute
@@ -204,6 +235,7 @@ export interface FileRoutesByTo {
   '/app/posts': typeof AuthAppPostsIndexRoute
   '/app/profile': typeof AuthAppProfileIndexRoute
   '/app/services': typeof AuthAppServicesIndexRoute
+  '/app/studio': typeof AuthAppStudioIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -219,9 +251,12 @@ export interface FileRoutesById {
   '/api/seed': typeof ApiSeedRoute
   '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_auth/app/messages': typeof AuthAppMessagesRoute
+  '/_auth/app/onboarding': typeof AuthAppOnboardingRoute
   '/_public/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
+  '/_public/creators/': typeof PublicCreatorsIndexRoute
   '/admin/reports/': typeof AdminReportsIndexRoute
   '/_auth/app/gigs/$gigId': typeof AuthAppGigsGigIdRoute
   '/_auth/app/profile/creator': typeof AuthAppProfileCreatorRoute
@@ -232,6 +267,7 @@ export interface FileRoutesById {
   '/_auth/app/posts/': typeof AuthAppPostsIndexRoute
   '/_auth/app/profile/': typeof AuthAppProfileIndexRoute
   '/_auth/app/services/': typeof AuthAppServicesIndexRoute
+  '/_auth/app/studio/': typeof AuthAppStudioIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -245,9 +281,12 @@ export interface FileRouteTypes {
     | '/shots'
     | '/api/seed'
     | '/admin/'
+    | '/app/messages'
+    | '/app/onboarding'
     | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app/'
+    | '/creators/'
     | '/admin/reports/'
     | '/app/gigs/$gigId'
     | '/app/profile/creator'
@@ -258,6 +297,7 @@ export interface FileRouteTypes {
     | '/app/posts/'
     | '/app/profile/'
     | '/app/services/'
+    | '/app/studio/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -268,9 +308,12 @@ export interface FileRouteTypes {
     | '/shots'
     | '/api/seed'
     | '/admin'
+    | '/app/messages'
+    | '/app/onboarding'
     | '/creators/$creatorId'
     | '/api/auth/$'
     | '/app'
+    | '/creators'
     | '/admin/reports'
     | '/app/gigs/$gigId'
     | '/app/profile/creator'
@@ -281,6 +324,7 @@ export interface FileRouteTypes {
     | '/app/posts'
     | '/app/profile'
     | '/app/services'
+    | '/app/studio'
   id:
     | '__root__'
     | '/_auth'
@@ -295,9 +339,12 @@ export interface FileRouteTypes {
     | '/api/seed'
     | '/_public/'
     | '/admin/'
+    | '/_auth/app/messages'
+    | '/_auth/app/onboarding'
     | '/_public/creators/$creatorId'
     | '/api/auth/$'
     | '/_auth/app/'
+    | '/_public/creators/'
     | '/admin/reports/'
     | '/_auth/app/gigs/$gigId'
     | '/_auth/app/profile/creator'
@@ -308,6 +355,7 @@ export interface FileRouteTypes {
     | '/_auth/app/posts/'
     | '/_auth/app/profile/'
     | '/_auth/app/services/'
+    | '/_auth/app/studio/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -413,6 +461,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAppIndexRouteImport
       parentRoute: typeof AuthAppRouteRoute
     }
+    '/_auth/app/messages': {
+      id: '/_auth/app/messages'
+      path: '/messages'
+      fullPath: '/app/messages'
+      preLoaderRoute: typeof AuthAppMessagesRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
+    '/_auth/app/onboarding': {
+      id: '/_auth/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AuthAppOnboardingRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
+    '/_public/creators/': {
+      id: '/_public/creators/'
+      path: '/creators'
+      fullPath: '/creators/'
+      preLoaderRoute: typeof PublicCreatorsIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/_public/creators/$creatorId': {
       id: '/_public/creators/$creatorId'
       path: '/creators/$creatorId'
@@ -497,10 +566,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAppServicesIndexRouteImport
       parentRoute: typeof AuthAppRouteRoute
     }
+    '/_auth/app/studio/': {
+      id: '/_auth/app/studio/'
+      path: '/studio'
+      fullPath: '/app/studio/'
+      preLoaderRoute: typeof AuthAppStudioIndexRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
   }
 }
 
 interface AuthAppRouteRouteChildren {
+  AuthAppMessagesRoute: typeof AuthAppMessagesRoute
+  AuthAppOnboardingRoute: typeof AuthAppOnboardingRoute
   AuthAppIndexRoute: typeof AuthAppIndexRoute
   AuthAppGigsGigIdRoute: typeof AuthAppGigsGigIdRoute
   AuthAppProfileCreatorRoute: typeof AuthAppProfileCreatorRoute
@@ -511,9 +589,12 @@ interface AuthAppRouteRouteChildren {
   AuthAppPostsIndexRoute: typeof AuthAppPostsIndexRoute
   AuthAppProfileIndexRoute: typeof AuthAppProfileIndexRoute
   AuthAppServicesIndexRoute: typeof AuthAppServicesIndexRoute
+  AuthAppStudioIndexRoute: typeof AuthAppStudioIndexRoute
 }
 
 const AuthAppRouteRouteChildren: AuthAppRouteRouteChildren = {
+  AuthAppMessagesRoute: AuthAppMessagesRoute,
+  AuthAppOnboardingRoute: AuthAppOnboardingRoute,
   AuthAppIndexRoute: AuthAppIndexRoute,
   AuthAppGigsGigIdRoute: AuthAppGigsGigIdRoute,
   AuthAppProfileCreatorRoute: AuthAppProfileCreatorRoute,
@@ -524,6 +605,7 @@ const AuthAppRouteRouteChildren: AuthAppRouteRouteChildren = {
   AuthAppPostsIndexRoute: AuthAppPostsIndexRoute,
   AuthAppProfileIndexRoute: AuthAppProfileIndexRoute,
   AuthAppServicesIndexRoute: AuthAppServicesIndexRoute,
+  AuthAppStudioIndexRoute: AuthAppStudioIndexRoute,
 }
 
 const AuthAppRouteRouteWithChildren = AuthAppRouteRoute._addFileChildren(
@@ -562,6 +644,7 @@ interface PublicRouteChildren {
   PublicShotsRoute: typeof PublicShotsRoute
   PublicIndexRoute: typeof PublicIndexRoute
   PublicCreatorsCreatorIdRoute: typeof PublicCreatorsCreatorIdRoute
+  PublicCreatorsIndexRoute: typeof PublicCreatorsIndexRoute
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
@@ -570,6 +653,7 @@ const PublicRouteChildren: PublicRouteChildren = {
   PublicShotsRoute: PublicShotsRoute,
   PublicIndexRoute: PublicIndexRoute,
   PublicCreatorsCreatorIdRoute: PublicCreatorsCreatorIdRoute,
+  PublicCreatorsIndexRoute: PublicCreatorsIndexRoute,
 }
 
 const PublicRouteWithChildren =

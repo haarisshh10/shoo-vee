@@ -53,7 +53,8 @@ function RootDocument({ children }: { readonly children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider>
+        {/* Dark is the product's default look; the header toggle still offers light. */}
+        <ThemeProvider defaultTheme="dark">
           {children}
           <Toaster />
         </ThemeProvider>
