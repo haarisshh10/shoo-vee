@@ -9,7 +9,7 @@ test.beforeAll(async ({ request }) => {
 test("landing page shows the brand message", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Create. Capture. Sell." })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Discover creators" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Discover creators" })).toBeVisible();
 });
 
 test("discover lists seeded creators", async ({ page }) => {
@@ -23,12 +23,12 @@ test("gigs page lists seeded gigs", async ({ page }) => {
   await expect(page.getByText("Need second photographer for a wedding")).toBeVisible();
 });
 
-test("login as seeded creator lands on the dashboard", async ({ page }) => {
+test("login as seeded creator lands on the marketplace home", async ({ page }) => {
   await login(page, "asha@example.dev");
-  await expect(page.getByText("Hello, Asha Rao")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Welcome back, Asha" })).toBeVisible();
 });
 
 test("shots page renders seeded posts", async ({ page }) => {
   await page.goto("/shots");
-  await expect(page.getByText("Latest work").first()).toBeVisible();
+  await expect(page.getByText("recent posts")).toBeVisible();
 });

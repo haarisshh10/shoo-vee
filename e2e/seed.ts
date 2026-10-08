@@ -24,19 +24,20 @@ export async function seedE2eDatabase(request: APIRequestContext) {
 }
 
 async function signInOrCreateDemoUser(request: APIRequestContext) {
-  const signIn = await request.post("/api/auth/sign-in/email", {
-    data: { email: DEMO_EMAIL, password: DEMO_PASSWORD },
-  });
+  const credentials = { email: DEMO_EMAIL, password: DEMO_PASSWORD };
+  const signIn = await request.post("/api/auth/sign-in/email", { data: credentials });
   if (signIn.ok()) return;
 
   const signUp = await request.post("/api/auth/sign-up/email", {
-    data: { name: "Demo User", email: DEMO_EMAIL, password: DEMO_PASSWORD },
+    data: { name: "Demo User", ...credentials },
   });
-  if (!signUp.ok()) {
-    throw new Error(
-      `Could not create the demo account (${signUp.status()}): ${await signUp.text()}`,
-    );
-  }
+  if (signUp.ok()) return;
+
+  // Better Auth answers 401 for both an unknown email and a wrong password, so report both
+  // attempts: a tripped rate limit otherwise surfaces as a misleading signup error.
+  throw new Error(
+    `Could not provision the demo account — sign-in ${signIn.status()}: ${await signIn.text()} | sign-up ${signUp.status()}: ${await signUp.text()}`,
+  );
 }
 
 async function promoteToAdmin(email: string) {

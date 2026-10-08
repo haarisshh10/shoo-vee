@@ -57,7 +57,7 @@ test("reporting someone else's post is acknowledged", async ({ page }) => {
   await login(page, "asha@example.dev");
   await page.goto("/shots");
 
-  const card = page.locator("li").filter({ hasText: "Meera Iyer" });
+  const card = page.locator("li").filter({ hasText: "Meera Iyer" }).first();
   page.once("dialog", (dialog) => dialog.accept("Undisclosed commercial watermark"));
   await card.getByRole("button", { name: "Report", exact: true }).click();
 
@@ -68,7 +68,7 @@ test("reporting your own post is refused", async ({ page }) => {
   await login(page, "asha@example.dev");
   await page.goto("/shots");
 
-  const card = page.locator("li").filter({ hasText: "Asha Rao" });
+  const card = page.locator("li").filter({ hasText: "Asha Rao" }).first();
   page.once("dialog", (dialog) => dialog.accept("Testing my own upload"));
   await card.getByRole("button", { name: "Report", exact: true }).click();
 
