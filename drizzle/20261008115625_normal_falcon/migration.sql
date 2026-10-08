@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "booking_creatorId_accepted_day_idx" ON "booking" ("creator_id",date_trunc('day', "event_date")) WHERE "status" = 'accepted' AND "event_date" IS NOT NULL;

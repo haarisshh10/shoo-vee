@@ -1,4 +1,5 @@
-import { index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { index, integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { user } from "./auth.schema";
 import { creatorProfile } from "./creator.schema";
@@ -35,5 +36,12 @@ export const booking = pgTable(
     index("booking_creatorId_idx").on(table.creatorId),
     index("booking_status_idx").on(table.status),
     index("booking_createdAt_idx").on(table.createdAt),
+    // The backstop against double-booking. A booking covers a whole calendar day, so a creator
+    // cannot have two accepted bookings on the same day — and two accepts can race, so the
+    // application check alone would not be enough. Undated requests are exempt: we cannot tell
+    // which day they fall on.
+    uniqueIndex("booking_creatorId_accepted_day_idx")
+      .on(table.creatorId, sql`date_trunc('day', ${table.eventDate})`)
+      .where(sql`${table.status} = 'accepted' AND ${table.eventDate} IS NOT NULL`),
   ],
 );

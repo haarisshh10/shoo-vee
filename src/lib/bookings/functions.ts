@@ -1,12 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
 import {
+  blockBookingRequest,
+  describeBlockedBooking,
   describeTransitionFailure,
   describeTransitionOutcome,
   resolveBookingTransition,
+  type Availability,
   type BookingAction,
   type BookingRole,
 } from "#/lib/bookings/transitions.ts";
@@ -58,13 +61,22 @@ export const $createBooking = createServerFn({ method: "POST" })
       if (!svc) throw new Error("Service not found for this creator.");
     }
 
+    // A creator who has closed their books, or who is already shooting that day, cannot take this.
+    const eventDate = data.eventDate ? new Date(data.eventDate) : null;
+    await assertCreatorCanTakeBooking({
+      creatorId: creator.id,
+      displayName: creator.displayName,
+      availability: creator.availabilityStatus,
+      eventDate,
+    });
+
     const [created] = await db
       .insert(booking)
       .values({
         customerId: context.user.id,
         creatorId: creator.id,
         serviceId: data.serviceId ?? null,
-        eventDate: data.eventDate ? new Date(data.eventDate) : null,
+        eventDate,
         location: data.location ?? null,
         message: data.message ?? null,
         agreedPrice: data.agreedPrice ?? null,
@@ -131,15 +143,88 @@ export const $transitionBooking = createServerFn({ method: "POST" })
     const next = resolveBookingTransition(data.action, role, existing.status);
     if (!next) throw new Error(describeTransitionFailure(data.action, role, existing.status));
 
+    // Accepting is what reserves the day, so the guard runs again here: the creator may have closed
+    // their books since the request arrived, or booked that date for someone else already.
+    if (data.action === "accept") {
+      const [creator] = await db
+        .select({
+          displayName: creatorProfile.displayName,
+          availabilityStatus: creatorProfile.availabilityStatus,
+        })
+        .from(creatorProfile)
+        .where(eq(creatorProfile.id, existing.creatorId))
+        .limit(1);
+      await assertCreatorCanTakeBooking({
+        creatorId: existing.creatorId,
+        displayName: creator?.displayName ?? "This creator",
+        availability: creator?.availabilityStatus ?? "unavailable",
+        eventDate: existing.eventDate,
+        excludeBookingId: existing.id,
+      });
+    }
+
     const [updated] = await db
       .update(booking)
       .set({ status: next })
       .where(eq(booking.id, existing.id))
-      .returning();
+      .returning()
+      // A creator cannot accept two bookings on the same day. The application check above gives the
+      // friendly message; this index is the guarantee, since two accepts can race.
+      .catch(rethrowBookingConflict);
 
     await notifyCounterparty({ action: data.action, role, existing });
     return updated;
   });
+
+function rethrowBookingConflict(error: unknown): never {
+  if (error instanceof Error && "code" in error && error.code === "23505") {
+    throw new Error(
+      "This creator already has a booking on that date. Pick another date or send a custom request.",
+    );
+  }
+  throw error;
+}
+
+/**
+ * Refuses a booking that a creator cannot take: closed books, or a day they are already shooting.
+ *
+ * Called both when a request is made and again when it is accepted, because a creator can close
+ * their books in between and because accepting is what actually reserves the day.
+ */
+async function assertCreatorCanTakeBooking({
+  creatorId,
+  displayName,
+  availability,
+  eventDate,
+  excludeBookingId,
+}: {
+  creatorId: string;
+  displayName: string;
+  availability: Availability;
+  eventDate: Date | null;
+  excludeBookingId?: string;
+}) {
+  const taken = await db
+    .select({ eventDate: booking.eventDate })
+    .from(booking)
+    .where(
+      and(
+        eq(booking.creatorId, creatorId),
+        eq(booking.status, "accepted"),
+        excludeBookingId ? ne(booking.id, excludeBookingId) : undefined,
+      ),
+    );
+
+  const reason = blockBookingRequest({
+    availability,
+    eventDate,
+    takenDates: taken.flatMap((row) => (row.eventDate ? [row.eventDate] : [])),
+  });
+
+  if (reason) {
+    throw new Error(describeBlockedBooking(reason, displayName));
+  }
+}
 
 async function notifyCounterparty({
   action,

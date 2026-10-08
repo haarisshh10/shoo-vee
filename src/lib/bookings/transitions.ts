@@ -5,6 +5,15 @@ export type BookingAction = "accept" | "reject" | "cancel" | "complete";
 /** Which side of a booking the caller is acting as. */
 export type BookingRole = "creator" | "customer";
 
+/** A creator's public availability, from `creator_profile.availability_status`. */
+export type Availability = "available" | "busy" | "unavailable";
+
+export const AVAILABILITY_COPY: Record<Availability, { label: string; hint: string }> = {
+  available: { label: "Available", hint: "Taking new bookings" },
+  busy: { label: "Busy", hint: "Not taking new bookings right now" },
+  unavailable: { label: "Unavailable", hint: "Not accepting bookings" },
+};
+
 type TransitionRule = {
   roles: readonly BookingRole[];
   from: readonly BookingStatus[];
@@ -72,4 +81,44 @@ export function describeTransitionOutcome(
         body: "This booking is done — leave a review to help other creators.",
       };
   }
+}
+
+/** The reason a booking request cannot be made, or `null` when it is allowed. */
+export type BlockedReason = "unavailable" | "date-taken";
+
+/**
+ * Whether a creator can take a booking for a date.
+ *
+ * `takenDates` are the calendar days the creator already has an accepted booking on. A booking
+ * covers a whole day: a creator cannot be in two places on the same date, and that is the
+ * granularity customers book at, so two accepted bookings cannot share a day.
+ */
+export function blockBookingRequest(input: {
+  availability: Availability;
+  eventDate: Date | null;
+  takenDates: readonly Date[];
+}): BlockedReason | null {
+  if (input.availability !== "available") return "unavailable";
+  if (!input.eventDate) return null;
+  return sameCalendarDay(input.eventDate, input.takenDates) ? "date-taken" : null;
+}
+
+export function describeBlockedBooking(reason: BlockedReason, displayName?: string): string {
+  const who = displayName ? `${displayName} is` : "This creator is";
+  switch (reason) {
+    case "unavailable":
+      return `${who} not taking new bookings right now. Try another creator or check back later.`;
+    case "date-taken":
+      return `${who} already has a booking on that date. Pick another date or send a custom request.`;
+  }
+}
+
+/** Same UTC calendar day. Booking dates are stored without a timezone, so UTC is the stable frame. */
+export function sameCalendarDay(a: Date, dates: readonly Date[]): boolean {
+  const day = startOfUtcDay(a);
+  return dates.some((d) => startOfUtcDay(d).getTime() === day.getTime());
+}
+
+function startOfUtcDay(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }

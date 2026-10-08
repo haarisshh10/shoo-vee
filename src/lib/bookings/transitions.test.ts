@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import {
+  AVAILABILITY_COPY,
   BOOKING_TRANSITIONS,
+  blockBookingRequest,
+  describeBlockedBooking,
   describeTransitionFailure,
   describeTransitionOutcome,
   resolveBookingTransition,
+  sameCalendarDay,
   type BookingAction,
   type BookingRole,
 } from "#/lib/bookings/transitions.ts";
@@ -98,6 +102,79 @@ describe("booking transition notifications", () => {
       // The old template interpolated the status enum straight into a sentence.
       expect(body).not.toMatch(/\bis now\b/);
       expect(body.endsWith(".")).toBe(true);
+    }
+  });
+});
+
+describe("booking request guard", () => {
+  const day = (iso: string) => new Date(iso);
+
+  it("allows a request when the creator is available and the day is free", () => {
+    expect(
+      blockBookingRequest({
+        availability: "available",
+        eventDate: day("2026-12-12T10:00:00Z"),
+        takenDates: [day("2026-12-13T09:00:00Z")],
+      }),
+    ).toBeNull();
+  });
+
+  it("blocks a request when the creator is busy or unavailable", () => {
+    for (const availability of ["busy", "unavailable"] as const) {
+      expect(
+        blockBookingRequest({
+          availability,
+          eventDate: day("2026-12-12T10:00:00Z"),
+          takenDates: [],
+        }),
+      ).toBe("unavailable");
+    }
+  });
+
+  it("blocks a request for a day the creator is already booked on", () => {
+    // Same day, different times: a booking covers the whole day.
+    expect(
+      blockBookingRequest({
+        availability: "available",
+        eventDate: day("2026-12-12T18:00:00Z"),
+        takenDates: [day("2026-12-12T07:00:00Z")],
+      }),
+    ).toBe("date-taken");
+  });
+
+  it("cannot judge availability of an undated request, but still checks a booked creator", () => {
+    expect(
+      blockBookingRequest({
+        availability: "available",
+        eventDate: null,
+        takenDates: [day("2026-01-01")],
+      }),
+    ).toBeNull();
+    expect(blockBookingRequest({ availability: "busy", eventDate: null, takenDates: [] })).toBe(
+      "unavailable",
+    );
+  });
+
+  it("compares calendar days, not instants", () => {
+    expect(sameCalendarDay(day("2026-03-01T23:59:00Z"), [day("2026-03-01T00:01:00Z")])).toBe(true);
+    expect(sameCalendarDay(day("2026-03-01T00:00:00Z"), [day("2026-02-28T23:59:00Z")])).toBe(false);
+  });
+
+  it("explains the refusal without leaking internals", () => {
+    expect(describeBlockedBooking("unavailable", "Asha Rao")).toBe(
+      "Asha Rao is not taking new bookings right now. Try another creator or check back later.",
+    );
+    expect(describeBlockedBooking("date-taken", "Asha Rao")).toContain("already has a booking");
+    expect(describeBlockedBooking("unavailable")).toBe(
+      "This creator is not taking new bookings right now. Try another creator or check back later.",
+    );
+  });
+
+  it("keeps every availability state labelled for the public profile", () => {
+    expect(Object.keys(AVAILABILITY_COPY)).toEqual(["available", "busy", "unavailable"]);
+    for (const copy of Object.values(AVAILABILITY_COPY)) {
+      expect(copy.label.length).toBeGreaterThan(0);
+      expect(copy.hint.length).toBeGreaterThan(0);
     }
   });
 });

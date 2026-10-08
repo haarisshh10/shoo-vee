@@ -138,3 +138,83 @@ test("resolving a report reaches the reporter", async ({ page }) => {
   await page.getByRole("button", { name: "Notifications" }).click();
   await expect(page.getByText("Report reviewed")).toBeVisible();
 });
+
+/** Books a creator from the public page, on a date the test picks, so requests can be repeated. */
+async function requestBooking(
+  page: import("@playwright/test").Page,
+  options: { creator: string; date: string; location: string },
+) {
+  await page.goto("/creators");
+  await page
+    .getByRole("link", { name: new RegExp(options.creator) })
+    .first()
+    .click();
+  await page.waitForURL("**/creators/**");
+  await page.getByLabel("Event date").fill(options.date);
+  await page.getByLabel("Location").fill(options.location);
+  await page.getByRole("button", { name: "Request booking" }).click();
+}
+
+test("a creator cannot accept two bookings on the same day", async ({ page }) => {
+  // Two requests for the same day. The first accept reserves it; the second has to be refused.
+  await login(page, DEMO_EMAIL);
+  await requestBooking(page, { creator: "Asha Rao", date: "2026-12-12", location: "E2E hold A" });
+  await expect(page.getByText("Request sent. Check your bookings page.")).toBeVisible();
+  await requestBooking(page, { creator: "Asha Rao", date: "2026-12-12", location: "E2E hold B" });
+  await expect(page.getByText("Request sent. Check your bookings page.")).toBeVisible();
+
+  await login(page, "asha@example.dev");
+  await page.goto("/app/bookings");
+  const asCreator = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "As a creator" }),
+  });
+
+  await asCreator
+    .getByRole("listitem")
+    .filter({ hasText: "E2E hold A" })
+    .getByRole("button", { name: "Accept" })
+    .click();
+  await expect(
+    asCreator.getByRole("listitem").filter({ hasText: "E2E hold A" }).getByText("accepted"),
+  ).toBeVisible();
+
+  // Same day, already spoken for: the request stands but cannot be accepted.
+  await asCreator
+    .getByRole("listitem")
+    .filter({ hasText: "E2E hold B" })
+    .getByRole("button", { name: "Accept" })
+    .click();
+  await expect(page.getByText("already has a booking on that date")).toBeVisible();
+  await expect(
+    asCreator.getByRole("listitem").filter({ hasText: "E2E hold B" }).getByText("pending"),
+  ).toBeVisible();
+});
+
+test("a creator who closes their books refuses new booking requests", async ({ page }) => {
+  await login(page, "asha@example.dev");
+  await page.goto("/app/profile/creator");
+  // The radio itself is visually hidden, so click its label the way a customer would.
+  await page.locator('label:has(input[value="unavailable"])').click();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Creator profile saved.")).toBeVisible();
+
+  await login(page, DEMO_EMAIL);
+  await page.goto("/creators");
+  await page
+    .getByRole("link", { name: /Asha Rao/ })
+    .first()
+    .click();
+  await page.waitForURL("**/creators/**");
+
+  // The public page says so before the form is ever filled in.
+  await expect(page.getByText("Unavailable", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Request booking" })).toHaveCount(0);
+  await expect(page.getByText("is not taking new bookings right now")).toBeVisible();
+
+  // Put the books back on so the shared seed stays usable for later specs.
+  await login(page, "asha@example.dev");
+  await page.goto("/app/profile/creator");
+  await page.locator('label:has(input[value="available"])').click();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Creator profile saved.")).toBeVisible();
+});
