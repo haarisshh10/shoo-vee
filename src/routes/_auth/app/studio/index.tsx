@@ -66,8 +66,8 @@ function StudioOverview() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            to="/creators/$creatorId"
-            params={{ creatorId: data.profile.id }}
+            to="/creators/$slug"
+            params={{ slug: data.profile.slug ?? data.profile.id }}
             className={buttonVariants({ variant: "outline" })}
           >
             View public profile

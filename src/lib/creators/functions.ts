@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { freshAuthMiddleware } from "#/lib/auth/middleware.ts";
+import { generateUniqueSlug } from "#/lib/creators/slugs.ts";
 import { db } from "#/lib/db/index.ts";
 import {
   creatorEquipment,
@@ -52,33 +53,56 @@ export const $getCreatorById = createServerFn({ method: "GET" })
       .where(eq(creatorProfile.id, data.creatorId))
       .limit(1);
     if (!profile) return null;
-
-    const [portfolioItems, services, equipmentRows, reviews] = await Promise.all([
-      db
-        .select()
-        .from(portfolioItem)
-        .where(eq(portfolioItem.creatorId, profile.id))
-        .orderBy(desc(portfolioItem.createdAt)),
-      db
-        .select()
-        .from(service)
-        .where(eq(service.creatorId, profile.id))
-        .orderBy(desc(service.createdAt)),
-      db
-        .select({ equipment })
-        .from(creatorEquipment)
-        .innerJoin(equipment, eq(creatorEquipment.equipmentId, equipment.id))
-        .where(eq(creatorEquipment.creatorId, profile.id)),
-      db
-        .select({ review, reviewerName: user.name })
-        .from(review)
-        .innerJoin(user, eq(review.reviewerId, user.id))
-        .where(eq(review.creatorId, profile.id))
-        .orderBy(desc(review.createdAt)),
-    ]);
-
-    return { profile, portfolioItems, services, equipment: equipmentRows, reviews };
+    return loadCreatorDetail(profile);
   });
+
+/** Resolves a friendly slug, falling back to the raw id so old links keep working. */
+export const $getCreatorBySlug = createServerFn({ method: "GET" })
+  .validator((data) => z.object({ slug: z.string() }).parse(data))
+  .handler(async ({ data }) => {
+    const [profile] = await db
+      .select()
+      .from(creatorProfile)
+      .where(eq(creatorProfile.slug, data.slug))
+      .limit(1);
+    if (profile) return loadCreatorDetail(profile);
+
+    const [byId] = await db
+      .select()
+      .from(creatorProfile)
+      .where(eq(creatorProfile.id, data.slug))
+      .limit(1);
+    if (!byId) return null;
+    return loadCreatorDetail(byId);
+  });
+
+async function loadCreatorDetail(profile: typeof creatorProfile.$inferSelect) {
+  const [portfolioItems, services, equipmentRows, reviews] = await Promise.all([
+    db
+      .select()
+      .from(portfolioItem)
+      .where(eq(portfolioItem.creatorId, profile.id))
+      .orderBy(desc(portfolioItem.createdAt)),
+    db
+      .select()
+      .from(service)
+      .where(eq(service.creatorId, profile.id))
+      .orderBy(desc(service.createdAt)),
+    db
+      .select({ equipment })
+      .from(creatorEquipment)
+      .innerJoin(equipment, eq(creatorEquipment.equipmentId, equipment.id))
+      .where(eq(creatorEquipment.creatorId, profile.id)),
+    db
+      .select({ review, reviewerName: user.name })
+      .from(review)
+      .innerJoin(user, eq(review.reviewerId, user.id))
+      .where(eq(review.creatorId, profile.id))
+      .orderBy(desc(review.createdAt)),
+  ]);
+
+  return { profile, portfolioItems, services, equipment: equipmentRows, reviews };
+}
 
 export type CreatorProfileInput = z.infer<typeof createProfileSchema>;
 
@@ -118,7 +142,10 @@ export const $upsertCreatorProfile = createServerFn({ method: "POST" })
     if (existing) {
       const [updated] = await db
         .update(creatorProfile)
-        .set(values)
+        .set({
+          ...values,
+          slug: existing.slug ?? (await generateUniqueSlug(data.displayName, existing.id)),
+        })
         .where(eq(creatorProfile.userId, context.user.id))
         .returning();
       return updated;
@@ -126,7 +153,11 @@ export const $upsertCreatorProfile = createServerFn({ method: "POST" })
 
     const [created] = await db
       .insert(creatorProfile)
-      .values({ ...values, userId: context.user.id })
+      .values({
+        ...values,
+        userId: context.user.id,
+        slug: await generateUniqueSlug(data.displayName),
+      })
       .returning();
     return created;
   });

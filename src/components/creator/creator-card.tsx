@@ -14,9 +14,11 @@ function formatPrice(value: number | null, currency: string | null) {
  */
 export function CreatorCard({
   creator,
+  action,
 }: {
   creator: {
     id: string;
+    slug: string | null;
     displayName: string;
     location: string | null;
     creatorTypes: string[];
@@ -29,17 +31,21 @@ export function CreatorCard({
     previewImage: string | null;
     previewImages?: string[];
   };
+  action?: React.ReactNode;
 }) {
   const strip = (creator.previewImages ?? [])
     .filter((src) => src !== creator.previewImage)
     .slice(0, 2);
 
   return (
-    <Link
-      to="/creators/$creatorId"
-      params={{ creatorId: creator.id }}
-      className="group flex flex-col overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:border-foreground/25 hover:shadow-xl hover:shadow-black/20"
-    >
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:border-foreground/25 hover:shadow-xl hover:shadow-black/20">
+      <Link
+        to="/creators/$slug"
+        params={{ slug: creator.slug ?? creator.id }}
+        aria-label={`View ${creator.displayName}'s profile`}
+        className="absolute inset-0 z-10"
+      />
+      {action ? <div className="absolute end-3 top-3 z-20">{action}</div> : null}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         {creator.previewImage ? (
           <img
@@ -64,7 +70,11 @@ export function CreatorCard({
         </div>
 
         {creator.avgRating !== null ? (
-          <span className="absolute end-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
+          <span
+            className={`absolute top-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm ${
+              action ? "end-14" : "end-3"
+            }`}
+          >
             <StarIcon className="size-3 fill-amber-400 text-amber-400" aria-hidden="true" />
             {creator.avgRating.toFixed(1)}
             <span className="text-white/70">({creator.reviewCount})</span>
@@ -118,6 +128,6 @@ export function CreatorCard({
           <span className="text-xs text-muted-foreground"> starting</span>
         </p>
       </div>
-    </Link>
+    </div>
   );
 }

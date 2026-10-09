@@ -19,7 +19,7 @@ export function ShotCard({
     location: string | null;
     tags: string[];
   };
-  creator: { id: string; displayName: string };
+  creator: { id: string; slug: string | null; displayName: string };
   className?: string;
   children?: React.ReactNode;
 }) {
@@ -55,8 +55,8 @@ export function ShotCard({
         ) : null}
         <div className="flex items-center gap-2 text-xs text-white/70">
           <Link
-            to="/creators/$creatorId"
-            params={{ creatorId: creator.id }}
+            to="/creators/$slug"
+            params={{ slug: creator.slug ?? creator.id }}
             className="pointer-events-auto font-medium text-white/90 hover:underline"
           >
             {creator.displayName}

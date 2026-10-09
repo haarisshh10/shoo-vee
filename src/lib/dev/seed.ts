@@ -1,6 +1,7 @@
 import { and, sql } from "drizzle-orm";
 
 import { auth } from "#/lib/auth/auth.ts";
+import { slugify } from "#/lib/creators/slugs.ts";
 import { db } from "#/lib/db/index.ts";
 import {
   booking,
@@ -257,6 +258,7 @@ export async function seedDevelopmentData() {
       .values({
         userId,
         displayName: c.name,
+        slug: slugify(c.name),
         bio: `${c.specialties.join(" & ")} creator based in ${c.location}.`,
         profileImageUrl: picsum(`face-${c.email}`),
         coverImageUrl: picsum(`cover-${c.email}`),

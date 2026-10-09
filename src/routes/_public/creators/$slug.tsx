@@ -6,21 +6,21 @@ import { useState } from "react";
 import { BookingForm } from "#/components/bookings/booking-form.tsx";
 import { ReportButton } from "#/components/reports/report-button.tsx";
 import { AVAILABILITY_COPY } from "#/lib/bookings/transitions.ts";
-import { $getCreatorById } from "#/lib/creators/functions.ts";
+import { $getCreatorBySlug } from "#/lib/creators/functions.ts";
 
-export const Route = createFileRoute("/_public/creators/$creatorId")({
+export const Route = createFileRoute("/_public/creators/$slug")({
   component: CreatorPage,
 });
 
-const creatorQueryOptions = (creatorId: string) =>
+const creatorQueryOptions = (slug: string) =>
   queryOptions({
-    queryKey: ["creator", creatorId],
-    queryFn: ({ signal }) => $getCreatorById({ data: { creatorId }, signal }),
+    queryKey: ["creator", slug],
+    queryFn: ({ signal }) => $getCreatorBySlug({ data: { slug }, signal }),
   });
 
 function CreatorPage() {
-  const { creatorId } = Route.useParams();
-  const { data, isPending, isError } = useQuery(creatorQueryOptions(creatorId));
+  const { slug } = Route.useParams();
+  const { data, isPending, isError } = useQuery(creatorQueryOptions(slug));
   // Set when a service is chosen from the list, so the booking form opens on it.
   const [selectedServiceId, setSelectedServiceId] = useState<string | undefined>();
 

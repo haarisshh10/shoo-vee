@@ -13,6 +13,7 @@ export const creatorProfile = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     displayName: text("display_name").notNull(),
+    slug: text("slug"),
     bio: text("bio"),
     profileImageUrl: text("profile_image_url"),
     coverImageUrl: text("cover_image_url"),
@@ -40,6 +41,7 @@ export const creatorProfile = pgTable(
   },
   (table) => [
     uniqueIndex("creator_profile_userId_idx").on(table.userId),
+    uniqueIndex("creator_profile_slug_idx").on(table.slug),
     index("creator_profile_location_idx").on(table.location),
     index("creator_profile_verificationStatus_idx").on(table.verificationStatus),
     index("creator_profile_createdAt_idx").on(table.createdAt),
