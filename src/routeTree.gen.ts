@@ -26,8 +26,9 @@ import { Route as UploadsFileRouteImport } from './routes/uploads/$file'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as AuthAppMessagesRouteImport } from './routes/_auth/app/messages'
 import { Route as AuthAppOnboardingRouteImport } from './routes/_auth/app/onboarding'
+import { Route as AuthAppShortlistsRouteImport } from './routes/_auth/app/shortlists'
 import { Route as PublicCreatorsIndexRouteImport } from './routes/_public/creators/index'
-import { Route as PublicCreatorsCreatorIdRouteImport } from './routes/_public/creators/$creatorId'
+import { Route as PublicCreatorsSlugRouteImport } from './routes/_public/creators/$slug'
 import { Route as AdminReportsIndexRouteImport } from './routes/admin/reports/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthAppBookingsIndexRouteImport } from './routes/_auth/app/bookings/index'
@@ -123,14 +124,19 @@ const AuthAppOnboardingRoute = AuthAppOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthAppRouteRoute,
 } as any)
+const AuthAppShortlistsRoute = AuthAppShortlistsRouteImport.update({
+  id: '/shortlists',
+  path: '/shortlists',
+  getParentRoute: () => AuthAppRouteRoute,
+} as any)
 const PublicCreatorsIndexRoute = PublicCreatorsIndexRouteImport.update({
   id: '/creators/',
   path: '/creators/',
   getParentRoute: () => PublicRoute,
 } as any)
-const PublicCreatorsCreatorIdRoute = PublicCreatorsCreatorIdRouteImport.update({
-  id: '/creators/$creatorId',
-  path: '/creators/$creatorId',
+const PublicCreatorsSlugRoute = PublicCreatorsSlugRouteImport.update({
+  id: '/creators/$slug',
+  path: '/creators/$slug',
   getParentRoute: () => PublicRoute,
 } as any)
 const AdminReportsIndexRoute = AdminReportsIndexRouteImport.update({
@@ -208,7 +214,8 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/app/messages': typeof AuthAppMessagesRoute
   '/app/onboarding': typeof AuthAppOnboardingRoute
-  '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
+  '/app/shortlists': typeof AuthAppShortlistsRoute
+  '/creators/$slug': typeof PublicCreatorsSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
   '/creators/': typeof PublicCreatorsIndexRoute
@@ -237,7 +244,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/app/messages': typeof AuthAppMessagesRoute
   '/app/onboarding': typeof AuthAppOnboardingRoute
-  '/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
+  '/app/shortlists': typeof AuthAppShortlistsRoute
+  '/creators/$slug': typeof PublicCreatorsSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
   '/creators': typeof PublicCreatorsIndexRoute
@@ -271,7 +279,8 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/_auth/app/messages': typeof AuthAppMessagesRoute
   '/_auth/app/onboarding': typeof AuthAppOnboardingRoute
-  '/_public/creators/$creatorId': typeof PublicCreatorsCreatorIdRoute
+  '/_auth/app/shortlists': typeof AuthAppShortlistsRoute
+  '/_public/creators/$slug': typeof PublicCreatorsSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
   '/_public/creators/': typeof PublicCreatorsIndexRoute
@@ -303,7 +312,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/app/messages'
     | '/app/onboarding'
-    | '/creators/$creatorId'
+    | '/app/shortlists'
+    | '/creators/$slug'
     | '/api/auth/$'
     | '/app/'
     | '/creators/'
@@ -332,7 +342,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app/messages'
     | '/app/onboarding'
-    | '/creators/$creatorId'
+    | '/app/shortlists'
+    | '/creators/$slug'
     | '/api/auth/$'
     | '/app'
     | '/creators'
@@ -365,7 +376,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/_auth/app/messages'
     | '/_auth/app/onboarding'
-    | '/_public/creators/$creatorId'
+    | '/_auth/app/shortlists'
+    | '/_public/creators/$slug'
     | '/api/auth/$'
     | '/_auth/app/'
     | '/_public/creators/'
@@ -515,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAppOnboardingRouteImport
       parentRoute: typeof AuthAppRouteRoute
     }
+    '/_auth/app/shortlists': {
+      id: '/_auth/app/shortlists'
+      path: '/shortlists'
+      fullPath: '/app/shortlists'
+      preLoaderRoute: typeof AuthAppShortlistsRouteImport
+      parentRoute: typeof AuthAppRouteRoute
+    }
     '/_public/creators/': {
       id: '/_public/creators/'
       path: '/creators'
@@ -522,11 +541,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicCreatorsIndexRouteImport
       parentRoute: typeof PublicRoute
     }
-    '/_public/creators/$creatorId': {
-      id: '/_public/creators/$creatorId'
-      path: '/creators/$creatorId'
-      fullPath: '/creators/$creatorId'
-      preLoaderRoute: typeof PublicCreatorsCreatorIdRouteImport
+    '/_public/creators/$slug': {
+      id: '/_public/creators/$slug'
+      path: '/creators/$slug'
+      fullPath: '/creators/$slug'
+      preLoaderRoute: typeof PublicCreatorsSlugRouteImport
       parentRoute: typeof PublicRoute
     }
     '/admin/reports/': {
@@ -619,6 +638,7 @@ declare module '@tanstack/react-router' {
 interface AuthAppRouteRouteChildren {
   AuthAppMessagesRoute: typeof AuthAppMessagesRoute
   AuthAppOnboardingRoute: typeof AuthAppOnboardingRoute
+  AuthAppShortlistsRoute: typeof AuthAppShortlistsRoute
   AuthAppIndexRoute: typeof AuthAppIndexRoute
   AuthAppGigsGigIdRoute: typeof AuthAppGigsGigIdRoute
   AuthAppProfileCreatorRoute: typeof AuthAppProfileCreatorRoute
@@ -635,6 +655,7 @@ interface AuthAppRouteRouteChildren {
 const AuthAppRouteRouteChildren: AuthAppRouteRouteChildren = {
   AuthAppMessagesRoute: AuthAppMessagesRoute,
   AuthAppOnboardingRoute: AuthAppOnboardingRoute,
+  AuthAppShortlistsRoute: AuthAppShortlistsRoute,
   AuthAppIndexRoute: AuthAppIndexRoute,
   AuthAppGigsGigIdRoute: AuthAppGigsGigIdRoute,
   AuthAppProfileCreatorRoute: AuthAppProfileCreatorRoute,
@@ -683,7 +704,7 @@ interface PublicRouteChildren {
   PublicGigsRoute: typeof PublicGigsRoute
   PublicShotsRoute: typeof PublicShotsRoute
   PublicIndexRoute: typeof PublicIndexRoute
-  PublicCreatorsCreatorIdRoute: typeof PublicCreatorsCreatorIdRoute
+  PublicCreatorsSlugRoute: typeof PublicCreatorsSlugRoute
   PublicCreatorsIndexRoute: typeof PublicCreatorsIndexRoute
 }
 
@@ -692,7 +713,7 @@ const PublicRouteChildren: PublicRouteChildren = {
   PublicGigsRoute: PublicGigsRoute,
   PublicShotsRoute: PublicShotsRoute,
   PublicIndexRoute: PublicIndexRoute,
-  PublicCreatorsCreatorIdRoute: PublicCreatorsCreatorIdRoute,
+  PublicCreatorsSlugRoute: PublicCreatorsSlugRoute,
   PublicCreatorsIndexRoute: PublicCreatorsIndexRoute,
 }
 
