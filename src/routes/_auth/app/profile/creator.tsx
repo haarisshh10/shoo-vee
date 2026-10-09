@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { LoaderCircleIcon } from "lucide-react";
+import { LoaderCircleIcon, MapPinIcon } from "lucide-react";
 import { useRef, useState } from "react";
 
 import {
@@ -11,10 +11,16 @@ import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
 import { toast } from "#/components/ui/toast.tsx";
+import { useGeolocation } from "#/hooks/use-geolocation.ts";
 import { AVAILABILITY_COPY, type Availability } from "#/lib/bookings/transitions.ts";
 import { $upsertCreatorProfile, type CreatorProfileInput } from "#/lib/creators/functions.ts";
 import { myCreatorProfileQueryOptions } from "#/lib/creators/queries.ts";
+import { nearestCity } from "#/lib/location/hubs.ts";
+import { optionalMediaUrl } from "#/lib/uploads/schema.ts";
 import { cn } from "#/lib/utils.ts";
+
+const isUsableMediaUrl = (value: string) =>
+  value === "" || optionalMediaUrl.safeParse(value).success;
 
 export const Route = createFileRoute("/_auth/app/profile/creator")({
   component: CreatorProfilePage,
@@ -94,6 +100,11 @@ function Chip({
 function CreatorProfilePage() {
   const queryClient = useQueryClient();
   const formRef = useRef<HTMLFormElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const cityInputRef = useRef<HTMLInputElement>(null);
+  const latitudeInputRef = useRef<HTMLInputElement>(null);
+  const longitudeInputRef = useRef<HTMLInputElement>(null);
+  const { isLocating, error: locationError, request: requestLocation } = useGeolocation();
   const { data: profile, isPending } = useQuery(myCreatorProfileQueryOptions());
 
   // The form stays uncontrolled; the preview is derived from FormData on every change.
@@ -124,8 +135,20 @@ function CreatorProfilePage() {
       startingPrice: str("startingPrice"),
       currency: str("currency"),
       availability: str("availabilityStatus"),
-      profileImageUrl: str("profileImageUrl"),
-      coverImageUrl: str("coverImageUrl"),
+      // Never preview an unsafe URL; an inline error explains the field instead.
+      profileImageUrl: isUsableMediaUrl(profileImageUrl) ? profileImageUrl : "",
+      coverImageUrl: isUsableMediaUrl(coverImageUrl) ? coverImageUrl : "",
+    });
+  };
+
+  const handleDetectLocation = () => {
+    requestLocation(({ latitude, longitude }) => {
+      const city = nearestCity(latitude, longitude);
+      if (city && locationInputRef.current) locationInputRef.current.value = city;
+      if (cityInputRef.current) cityInputRef.current.value = city ?? "";
+      if (latitudeInputRef.current) latitudeInputRef.current.value = String(latitude);
+      if (longitudeInputRef.current) longitudeInputRef.current.value = String(longitude);
+      syncPreview();
     });
   };
 
@@ -170,6 +193,10 @@ function CreatorProfilePage() {
       profileImageUrl: str("profileImageUrl"),
       coverImageUrl: str("coverImageUrl"),
       location: str("location"),
+      city: str("city") || undefined,
+      neighborhood: str("neighborhood") || undefined,
+      latitude: str("latitude") !== "" ? Number(str("latitude")) : undefined,
+      longitude: str("longitude") !== "" ? Number(str("longitude")) : undefined,
       specialties: splitList(formData.get("specialties")),
       creatorTypes: creatorTypes as CreatorProfileInput["creatorTypes"],
       startingPrice: str("startingPrice") !== "" ? Number(str("startingPrice")) : undefined,
@@ -260,15 +287,50 @@ function CreatorProfilePage() {
                 </p>
               </div>
 
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDetectLocation}
+                    disabled={isLocating}
+                  >
+                    {isLocating ? (
+                      <LoaderCircleIcon className="size-4 animate-spin" />
+                    ) : (
+                      <MapPinIcon className="size-4" />
+                    )}
+                    Use my location
+                  </Button>
+                </div>
+                <Input
+                  ref={locationInputRef}
+                  id="location"
+                  name="location"
+                  className={FIELD_CLASS}
+                  defaultValue={profile?.location ?? ""}
+                  placeholder="Mumbai"
+                />
+                {locationError ? (
+                  <p className="text-sm text-destructive">{locationError}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Detect your area, or type a city and neighbourhood.
+                  </p>
+                )}
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="neighborhood">Neighbourhood</Label>
                   <Input
-                    id="location"
-                    name="location"
+                    id="neighborhood"
+                    name="neighborhood"
                     className={FIELD_CLASS}
-                    defaultValue={profile?.location ?? ""}
-                    placeholder="Mumbai"
+                    defaultValue={profile?.neighborhood ?? ""}
+                    placeholder="Bandra"
                   />
                 </div>
                 <div className="grid gap-2">
@@ -285,6 +347,24 @@ function CreatorProfilePage() {
                   />
                 </div>
               </div>
+              <input
+                type="hidden"
+                name="city"
+                ref={cityInputRef}
+                defaultValue={profile?.city ?? ""}
+              />
+              <input
+                type="hidden"
+                name="latitude"
+                ref={latitudeInputRef}
+                defaultValue={profile?.latitude ?? ""}
+              />
+              <input
+                type="hidden"
+                name="longitude"
+                ref={longitudeInputRef}
+                defaultValue={profile?.longitude ?? ""}
+              />
             </div>
           </Section>
 

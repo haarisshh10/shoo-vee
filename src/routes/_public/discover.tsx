@@ -1,16 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { BadgeCheckIcon, SearchIcon, SlidersHorizontalIcon } from "lucide-react";
-import { useState } from "react";
+import {
+  BadgeCheckIcon,
+  LoaderCircleIcon,
+  MapPinIcon,
+  SearchIcon,
+  SlidersHorizontalIcon,
+} from "lucide-react";
+import { useRef, useState } from "react";
 import { z } from "zod";
 
 import { CreatorCard } from "#/components/creator/creator-card.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
+import { useGeolocation } from "#/hooks/use-geolocation.ts";
 import type { CreatorType } from "#/lib/db/schema/types.ts";
 import type { CreatorSearch } from "#/lib/discovery/functions.ts";
 import { searchCreatorsQueryOptions } from "#/lib/discovery/queries.ts";
+import { nearestCity } from "#/lib/location/hubs.ts";
 
 const searchParamsSchema = z.object({
   q: z.string().trim().max(120).optional(),
@@ -71,6 +79,8 @@ function DiscoverPage() {
 
   const { data: creators, isPending, isError } = useQuery(searchCreatorsQueryOptions(filters));
   const activeTypes = (search.types ?? "").split(",").filter(Boolean);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const { isLocating, error: locationError, request: requestLocation } = useGeolocation();
 
   const submit = (formData: FormData) => {
     const str = (key: string) => {
@@ -98,6 +108,15 @@ function DiscoverPage() {
   const updateSearch = (patch: Partial<typeof search>) => {
     setLimit(PAGE_SIZE);
     void navigate({ search: (prev) => ({ ...prev, ...patch }) });
+  };
+
+  const detectLocation = () => {
+    requestLocation(({ latitude, longitude }) => {
+      const city = nearestCity(latitude, longitude);
+      if (!city) return;
+      if (locationInputRef.current) locationInputRef.current.value = city;
+      updateSearch({ location: city });
+    });
   };
 
   const toggleType = (type: CreatorType) => {
@@ -150,12 +169,27 @@ function DiscoverPage() {
             />
           </div>
           <Input
+            ref={locationInputRef}
             name="location"
             defaultValue={search.location ?? ""}
             placeholder="City"
             aria-label="Location"
             className="sm:w-36"
           />
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={detectLocation}
+            disabled={isLocating}
+            title={locationError ?? "Use my current location"}
+          >
+            {isLocating ? (
+              <LoaderCircleIcon className="size-4 animate-spin" />
+            ) : (
+              <MapPinIcon className="size-4" />
+            )}
+            Near me
+          </Button>
           <Button type="submit" size="lg">
             Search
           </Button>

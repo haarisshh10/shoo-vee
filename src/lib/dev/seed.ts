@@ -263,6 +263,7 @@ export async function seedDevelopmentData() {
         profileImageUrl: picsum(`face-${c.email}`),
         coverImageUrl: picsum(`cover-${c.email}`),
         location: c.location,
+        city: c.location,
         specialties: c.specialties,
         creatorTypes: c.types as never[],
         startingPrice: c.price,
