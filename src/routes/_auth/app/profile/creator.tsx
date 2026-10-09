@@ -109,6 +109,13 @@ function CreatorProfilePage() {
 
   // The form stays uncontrolled; the preview is derived from FormData on every change.
   const [preview, setPreview] = useState<ProfilePreview | null>(null);
+  const [invalidMedia, setInvalidMedia] = useState<{
+    profileImageUrl: boolean;
+    coverImageUrl: boolean;
+  }>({
+    profileImageUrl: false,
+    coverImageUrl: false,
+  });
 
   const syncPreview = () => {
     const form = formRef.current;
@@ -123,6 +130,13 @@ function CreatorProfilePage() {
         .split(",")
         .map((entry) => entry.trim())
         .filter(Boolean);
+
+    const profileImageUrl = str("profileImageUrl");
+    const coverImageUrl = str("coverImageUrl");
+    setInvalidMedia({
+      profileImageUrl: !isUsableMediaUrl(profileImageUrl),
+      coverImageUrl: !isUsableMediaUrl(coverImageUrl),
+    });
 
     setPreview({
       displayName: str("displayName"),
@@ -482,11 +496,18 @@ function CreatorProfilePage() {
                 <Input
                   id="profileImageUrl"
                   name="profileImageUrl"
-                  type="url"
+                  type="text"
+                  inputMode="url"
+                  aria-invalid={invalidMedia.profileImageUrl || undefined}
                   className={FIELD_CLASS}
                   defaultValue={profile?.profileImageUrl ?? ""}
                   placeholder="https://…"
                 />
+                {invalidMedia.profileImageUrl ? (
+                  <p className="text-sm text-destructive">
+                    Enter an http(s) image link, or an uploaded image path.
+                  </p>
+                ) : null}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="coverImageUrl">Cover image URL</Label>
@@ -494,10 +515,16 @@ function CreatorProfilePage() {
                   id="coverImageUrl"
                   name="coverImageUrl"
                   type="url"
+                  aria-invalid={invalidMedia.coverImageUrl || undefined}
                   className={FIELD_CLASS}
                   defaultValue={profile?.coverImageUrl ?? ""}
                   placeholder="https://…"
                 />
+                {invalidMedia.coverImageUrl ? (
+                  <p className="text-sm text-destructive">
+                    Enter a valid http or https image link.
+                  </p>
+                ) : null}
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
