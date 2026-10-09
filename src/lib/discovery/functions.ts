@@ -30,63 +30,68 @@ export const searchSchema = z.object({
 export type CreatorSearch = z.infer<typeof searchSchema>;
 
 /**
- * Curated rows for the landing page and the signed-in home: the same shape as a discovery result,
+ * Curated rows for the landing page and the signed-in home. The same shape as a discovery result,
  * so one card component covers every surface.
  */
 export type CreatorCard = Awaited<ReturnType<typeof buildCreatorCards>>[number];
 
-const buildCreatorCards = createServerOnlyFn(async (limit: number) => {
-  const creators = await db
-    .select()
-    .from(creatorProfile)
-    .orderBy(desc(creatorProfile.createdAt))
-    .limit(limit * 3);
+/** Shared enrichment for creator cards. Pass `creatorIds` to keep a known set (e.g. shortlists). */
+export const buildCreatorCards = createServerOnlyFn(
+  async (options: { limit?: number; creatorIds?: string[] } = {}) => {
+    const { limit = 24, creatorIds } = options;
+    const creators = await db
+      .select()
+      .from(creatorProfile)
+      .where(creatorIds ? inArray(creatorProfile.id, creatorIds) : undefined)
+      .orderBy(desc(creatorProfile.createdAt))
+      .limit(limit);
 
-  if (creators.length === 0) return [];
+    if (creators.length === 0) return [];
 
-  const ids = creators.map((c) => c.id);
+    const ids = creators.map((c) => c.id);
 
-  const ratings = await db
-    .select({
-      creatorId: review.creatorId,
-      avg: sql<number>`avg(${review.rating})::float`,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(review)
-    .where(inArray(review.creatorId, ids))
-    .groupBy(review.creatorId);
+    const ratings = await db
+      .select({
+        creatorId: review.creatorId,
+        avg: sql<number>`avg(${review.rating})::float`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(review)
+      .where(inArray(review.creatorId, ids))
+      .groupBy(review.creatorId);
 
-  // Latest images per creator double as the card preview and the portfolio strip.
-  const previews = await db
-    .select({
-      creatorId: portfolioItem.creatorId,
-      mediaUrl: portfolioItem.mediaUrl,
-      title: portfolioItem.title,
-      createdAt: portfolioItem.createdAt,
-    })
-    .from(portfolioItem)
-    .where(and(inArray(portfolioItem.creatorId, ids), eq(portfolioItem.mediaType, "image")))
-    .orderBy(desc(portfolioItem.createdAt));
+    // Latest images per creator double as the card preview and the portfolio strip.
+    const previews = await db
+      .select({
+        creatorId: portfolioItem.creatorId,
+        mediaUrl: portfolioItem.mediaUrl,
+        title: portfolioItem.title,
+        createdAt: portfolioItem.createdAt,
+      })
+      .from(portfolioItem)
+      .where(and(inArray(portfolioItem.creatorId, ids), eq(portfolioItem.mediaType, "image")))
+      .orderBy(desc(portfolioItem.createdAt));
 
-  const ratingMap = new Map(ratings.map((r) => [r.creatorId, r]));
-  const previewsByCreator = new Map<string, { mediaUrl: string; title: string }[]>();
-  for (const p of previews) {
-    const list = previewsByCreator.get(p.creatorId);
-    if (list) list.push({ mediaUrl: p.mediaUrl, title: p.title });
-    else previewsByCreator.set(p.creatorId, [{ mediaUrl: p.mediaUrl, title: p.title }]);
-  }
+    const ratingMap = new Map(ratings.map((r) => [r.creatorId, r]));
+    const previewsByCreator = new Map<string, { mediaUrl: string; title: string }[]>();
+    for (const p of previews) {
+      const list = previewsByCreator.get(p.creatorId);
+      if (list) list.push({ mediaUrl: p.mediaUrl, title: p.title });
+      else previewsByCreator.set(p.creatorId, [{ mediaUrl: p.mediaUrl, title: p.title }]);
+    }
 
-  return creators.map((c) => {
-    const portfolio = previewsByCreator.get(c.id) ?? [];
-    return {
-      ...c,
-      avgRating: ratingMap.get(c.id)?.avg ?? null,
-      reviewCount: ratingMap.get(c.id)?.count ?? 0,
-      previewImage: portfolio[0]?.mediaUrl ?? null,
-      previewImages: portfolio.slice(0, 3).map((p) => p.mediaUrl),
-    };
-  });
-});
+    return creators.map((c) => {
+      const portfolio = previewsByCreator.get(c.id) ?? [];
+      return {
+        ...c,
+        avgRating: ratingMap.get(c.id)?.avg ?? null,
+        reviewCount: ratingMap.get(c.id)?.count ?? 0,
+        previewImage: portfolio[0]?.mediaUrl ?? null,
+        previewImages: portfolio.slice(0, 3).map((p) => p.mediaUrl),
+      };
+    });
+  },
+);
 
 /**
  * Featured creators for the landing page and signed-in home. Verified work leads, then rating, so
@@ -97,7 +102,7 @@ export const $getFeaturedCreators = createServerFn({ method: "GET" })
     z.object({ limit: z.number().int().min(1).max(24).default(8) }).parse(data ?? {}),
   )
   .handler(async ({ data }) => {
-    const cards = await buildCreatorCards(data.limit);
+    const cards = await buildCreatorCards({ limit: data.limit * 3 });
     cards.sort((a, b) => {
       const score = (c: (typeof cards)[number]) =>
         (c.verificationStatus === "verified" ? 1000 : 0) + (c.avgRating ?? 0) * 100;

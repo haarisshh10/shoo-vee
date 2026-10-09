@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   ApertureIcon,
+  BookmarkIcon,
   BriefcaseIcon,
   CalendarIcon,
   CameraIcon,
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/_auth/app")({
 const MARKETPLACE_NAV = [
   { to: "/discover", label: "Discover", icon: CompassIcon },
   { to: "/shots", label: "Shots", icon: ApertureIcon },
+  { to: "/app/shortlists", label: "Shortlists", icon: BookmarkIcon },
   { to: "/gigs", label: "Gigs", icon: BriefcaseIcon },
   { to: "/app/bookings", label: "Bookings", icon: CalendarIcon },
   { to: "/app/messages", label: "Messages", icon: MessageSquareIcon },

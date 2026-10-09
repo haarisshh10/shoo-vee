@@ -10,4 +10,5 @@ export * from "./booking.schema";
 export * from "./gig.schema";
 export * from "./review.schema";
 export * from "./notification.schema";
+export * from "./social.schema";
 export * from "./report.schema";

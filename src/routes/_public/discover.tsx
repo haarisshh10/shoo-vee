@@ -11,6 +11,7 @@ import { useRef, useState } from "react";
 import { z } from "zod";
 
 import { CreatorCard } from "#/components/creator/creator-card.tsx";
+import { SaveCreatorButton } from "#/components/social/creator-social-buttons.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
@@ -308,7 +309,10 @@ function DiscoverPage() {
             <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {creators.map((creator) => (
                 <li key={creator.id}>
-                  <CreatorCard creator={creator} />
+                  <CreatorCard
+                    creator={creator}
+                    action={<SaveCreatorButton creatorId={creator.id} />}
+                  />
                 </li>
               ))}
             </ul>

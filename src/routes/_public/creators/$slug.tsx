@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { BookingForm } from "#/components/bookings/booking-form.tsx";
 import { ReportButton } from "#/components/reports/report-button.tsx";
+import { CreatorSocialActions } from "#/components/social/creator-social-buttons.tsx";
 import { AVAILABILITY_COPY } from "#/lib/bookings/transitions.ts";
 import { $getCreatorBySlug } from "#/lib/creators/functions.ts";
 
@@ -63,8 +64,11 @@ function CreatorPage() {
                 ` · From ${profile.currency} ${profile.startingPrice.toLocaleString("en-IN")}`}
             </p>
           </div>
-          <AvailabilityBadge status={profile.availabilityStatus} className="ms-auto" />
-          <ReportButton targetType="creator_profile" targetId={profile.id} />
+          <div className="ms-auto flex flex-wrap items-center gap-2">
+            <AvailabilityBadge status={profile.availabilityStatus} />
+            <CreatorSocialActions creatorId={profile.id} />
+            <ReportButton targetType="creator_profile" targetId={profile.id} />
+          </div>
         </div>
         {profile.bio && <p className="text-sm">{profile.bio}</p>}
         {profile.availabilityStatus !== "available" ? (

@@ -5,6 +5,8 @@ import * as schema from "./";
 export const relations = defineRelations(schema, (r) => ({
   user: {
     media: r.many.media({ from: r.user.id, to: r.media.ownerId }),
+    savedCreators: r.many.savedCreator({ from: r.user.id, to: r.savedCreator.userId }),
+    follows: r.many.follow({ from: r.user.id, to: r.follow.followerId }),
   },
   media: {
     owner: r.one.user({ from: r.media.ownerId, to: r.user.id }),
@@ -35,6 +37,25 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.creatorProfile.id,
       to: r.review.creatorId,
     }),
+    savedBy: r.many.savedCreator({
+      from: r.creatorProfile.id,
+      to: r.savedCreator.creatorId,
+    }),
+    followers: r.many.follow({
+      from: r.creatorProfile.id,
+      to: r.follow.creatorId,
+    }),
+  },
+  savedCreator: {
+    user: r.one.user({ from: r.savedCreator.userId, to: r.user.id }),
+    creator: r.one.creatorProfile({
+      from: r.savedCreator.creatorId,
+      to: r.creatorProfile.id,
+    }),
+  },
+  follow: {
+    follower: r.one.user({ from: r.follow.followerId, to: r.user.id }),
+    creator: r.one.creatorProfile({ from: r.follow.creatorId, to: r.creatorProfile.id }),
   },
   portfolioItem: {
     creator: r.one.creatorProfile({
